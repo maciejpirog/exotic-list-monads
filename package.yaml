@@ -1,0 +1,31 @@
+name:        exotic-list-monads
+synopsis:    A few non-standard monads on lists and non-empty lists
+description: A few non-standard monads on lists and non-empty lists
+version:     1.0.0
+license:     MIT
+copyright:   (c) 2020 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
+author:      Maciej Piróg <maciej.adam.pirog@gmial.com>
+maintainer:  Maciej Piróg <maciej.adam.pirog@gmail.com>
+category:    List, Monads
+github:      maciejpirog/exotic-list-monads
+homepage:    http://github.com/maciejpirog/exotic-list-monads
+bug-reports: http://github.com/maciejpirog/exotic-list-monads/issues
+
+ghc-options:
+ -Wall
+ -Wno-name-shadowing
+ -fno-warn-partial-type-signatures
+
+dependencies:
+ - base >= 4.9 && < 5
+
+library:
+  source-dirs: src
+
+tests:
+  spec:
+    defaults: hspec/hspec@master
+    dependencies:
+      - exotic-list-monads
+      - QuickCheck
+      - hspec-core

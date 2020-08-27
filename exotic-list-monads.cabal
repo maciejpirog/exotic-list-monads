@@ -1,0 +1,57 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 66c19e862a58e39cb7519f7015ab3be423f99b643a1ff37375e2433312a7898e
+
+name:           exotic-list-monads
+version:        1.0.0
+synopsis:       A few non-standard monads on lists and non-empty lists
+description:    A few non-standard monads on lists and non-empty lists
+category:       List, Monads
+homepage:       http://github.com/maciejpirog/exotic-list-monads
+bug-reports:    http://github.com/maciejpirog/exotic-list-monads/issues
+author:         Maciej Piróg <maciej.adam.pirog@gmial.com>
+maintainer:     Maciej Piróg <maciej.adam.pirog@gmail.com>
+copyright:      (c) 2020 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/maciejpirog/exotic-list-monads
+
+library
+  exposed-modules:
+      Control.Monad.List.Exotic
+      Control.Monad.List.NonEmpty.Exotic
+  other-modules:
+      Paths_exotic_list_monads
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wno-name-shadowing -fno-warn-partial-type-signatures
+  build-depends:
+      base >=4.9 && <5
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Control.Monad.List.ExoticSpec
+      Control.Monad.List.NonEmpty.ExoticSpec
+      Paths_exotic_list_monads
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wno-name-shadowing -fno-warn-partial-type-signatures
+  build-depends:
+      QuickCheck
+    , base >=4.9 && <5
+    , exotic-list-monads
+    , hspec ==2.*
+    , hspec-core
+  default-language: Haskell2010
+  build-tool-depends: hspec-discover:hspec-discover == 2.*
