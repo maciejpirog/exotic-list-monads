@@ -6,4 +6,4 @@ functor. This module collects such exotic "list" monads.
 
 Most of the monads implemented in this library were introduced in the
 paper [Degrading lists](degrading-lists.pdf) by Dylan McDermott,
-MAciej Piróg, and Tarmo Uustalu (PPDP 2020).
+Maciej Piróg, and Tarmo Uustalu (PPDP 2020).
