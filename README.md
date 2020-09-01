@@ -2,7 +2,7 @@
 
 A Haskell library that defines a few non-standard monads on lists and non-empty lists 
 
-Warning: Needs ghc >= 8.6 (because of `QuantifiedConstraints`)
+Warning: Needs ghc >= 8.6
 
 ## Description
 
