@@ -1,5 +1,11 @@
 # exotic-list-monads
 
+A Haskell library that defines a few non-standard monads on lists and non-empty lists 
+
+Warning: Needs ghc >= 8.6 (because of `QuantifiedConstraints`)
+
+## Description
+
 The usual [list monad](https://hackage.haskell.org/package/base-4.14.0.0/docs/src/GHC.Base.html#line-1133) is only one of infinitely many ways to turn the list functor into a monad. The same applies to the usual [non-empty list monad](https://hackage.haskell.org/package/base-4.14.0.0/docs/src/GHC.Base.html#line-1105) and the non-empty list functor. This library collects such non-standard "list" and "non-empty list" monads.
 
 Most of the constructions implemented in this library have been first introduced in the paper [Degrading lists](degrading-lists.pdf) by Dylan McDermott, Maciej Piróg, and Tarmo Uustalu (PPDP 2020), but there are some new specimens as well.
