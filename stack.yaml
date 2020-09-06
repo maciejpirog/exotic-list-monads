@@ -41,6 +41,13 @@ packages:
 #
 # extra-deps: []
 
+extra-deps:
+ - Cabal-3.2.0.0@sha256:d0d7a1f405f25d0000f5ddef684838bc264842304fd4e7f80ca92b997b710874,27320
+ - cabal-install-parsers-0.3.0.1@sha256:c7e4c9379018f44c202b474877e5bc4089a8996e376985224e64715655dc09e1,3760
+ - generic-lens-lite-0.1@sha256:ff6b891859105808b39637601c7678a434ffa18bba3d368cddd29fc3ea0474bd,1635
+ - binary-instances-1.0.0.1@sha256:e234be994da675479a3661f050d4a1d53565c9ed7786d9a68b7a29ba8b54b5a7,2659
+
+
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
