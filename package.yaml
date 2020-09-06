@@ -11,6 +11,9 @@ github:      maciejpirog/exotic-list-monads
 homepage:    http://github.com/maciejpirog/exotic-list-monads
 bug-reports: http://github.com/maciejpirog/exotic-list-monads/issues
 
+extra-source-files:
+  - README.md
+
 ghc-options:
  -Wall
  -Wno-name-shadowing
@@ -18,6 +21,13 @@ ghc-options:
 
 dependencies:
  - base >= 4.9 && < 5
+
+tested-with:   GHC == 8.0.2
+             , GHC == 8.2.2
+             , GHC == 8.4.4
+             , GHC == 8.6.5
+             , GHC == 8.8.3
+             , GHC == 8.10.1
 
 library:
   source-dirs: src
