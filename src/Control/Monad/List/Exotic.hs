@@ -21,7 +21,7 @@
 
 -- |
 -- Module      : Control.Monad.List.Exotic
--- Description : A collection of non-standard monads on the list functor
+-- Description : Non-standard monads on the list functor
 -- Copyright   : (c) Dylan McDermott, Maciej Piróg, Tarmo Uustalu, 2020
 -- License     : MIT
 -- Maintainer  : maciej.adam.pirog@gmail.com
@@ -35,8 +35,8 @@
 -- __Notes:__
 --
 -- * Types marked with \"(?)\" have not been formally verified to be
--- monads, though they were thoroughly tested (at least 1 billion
--- QuickCheck tests each).
+-- monads (yet), though they were thoroughly tested (at least 1
+-- billion QuickCheck tests each).
 --
 -- * For readability, code snippets in this documentation assume
 -- @OverloadedLists@ and @OverloadedStrings@, which allow us to omit
@@ -46,12 +46,15 @@
 -- * The definitions of monads are optimized for readability and not
 -- run-time performance. This is because the monads in this module
 -- don't seem to be of any practical use, they are more of a
--- theoretical interest.
+-- theoretical curiosity.
 --
 -- * Monads in this module are presented in terms of @join@ rather
 -- than '>>='. In each case 'return' is singleton (it is not known if
 -- there exist monads on lists with a different return; they exist on
--- non-empty lists though).
+-- non-empty lists though, for example,
+--  'Control.Monad.List.NonEmpty.Exotic.HeadTails',
+--  'Control.Monad.List.NonEmpty.Exotic.HeadsTail',
+--  'Control.Monad.List.NonEmpty.Exotic.IdXList').
 
 module Control.Monad.List.Exotic
   (
@@ -137,8 +140,8 @@ import qualified Data.Monoid (Monoid)
 -- List monads in general --
 ----------------------------
 
--- | In this module, \"list monad\" is a monad in which the underlying
--- functor is isomorphic to List.
+-- | In this module, a \"list monad\" is a monad in which the
+-- underlying functor is isomorphic to List.
 class (Monad m, forall a. IsList (m a)) => ListMonad m
 
 instance ListMonad []

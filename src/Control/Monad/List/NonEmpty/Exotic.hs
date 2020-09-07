@@ -21,7 +21,7 @@
 
 -- |
 -- Module      : Control.Monad.List.NonEmpty.Exotic
--- Description : A collection of non-standard monads on the non-empty list functor
+-- Description : Non-standard monads on the non-empty list functor
 -- Copyright   : (c) Dylan McDermott, Maciej Piróg, Tarmo Uustalu, 2020
 -- License     : MIT
 -- Maintainer  : maciej.adam.pirog@gmail.com
@@ -35,8 +35,8 @@
 -- __Notes:__
 --
 -- * Types marked with \"(?)\" have not been formally verified to be
--- monads, though they were thoroughly tested (at least 1 billion
--- QuickCheck tests each).
+-- monads (yet), though they were thoroughly tested (at least 1
+-- billion QuickCheck tests each).
 --
 -- * Monads in this module are presented in terms of @join@ rather
 -- than '>>='. If not stated otherwise for a particular monad,
@@ -53,7 +53,7 @@
 -- * The definitions of monads are optimized for readability and not
 -- run-time performance. This is because the monads in this module
 -- don't seem to be of any practical use, they are more of a
--- theoretical interest.
+-- theoretical curiosity.
 --
 
 module Control.Monad.List.NonEmpty.Exotic
@@ -74,6 +74,8 @@ module Control.Monad.List.NonEmpty.Exotic
     
   -- * Monads from magmas
 
+  -- $magmas
+  
   , Magma(..)
   , FreeRBM(..)
 
@@ -104,6 +106,8 @@ module Control.Monad.List.NonEmpty.Exotic
   
   -- * Other monads with finite presentation
 
+  -- $others
+  
   -- ** The Head-Tails monad
 
   , HeadTailTail(..)
@@ -158,6 +162,8 @@ import Control.Monad.List.Exotic (ListMonad, palindromize)
 -- Non-empty list monads --
 ---------------------------
 
+-- | This class collects types that are isomorphic to non-empty
+-- lists. It mimics the 'GHC.Exts.IsList' class.
 class IsNonEmpty l where
   type ItemNE l
   fromNonEmpty :: NonEmpty (ItemNE l) -> l
@@ -168,7 +174,15 @@ instance IsNonEmpty (NonEmpty a) where
   fromNonEmpty = id
   toNonEmpty   = id
 
+-- | In this module, a \"non-empty monad\" is a monad in which the
+-- underlying functor is isomorphic to 'Data.List.NonEmpty.NonEmpty'.
 class (Monad m, forall a. IsNonEmpty (m a)) => NonEmptyMonad m where
+  -- | Since GHC does not allow a constrainst of the shape @forall
+  -- a. ItemNE (m a) ~ a@, we sometimes have to be explicit about the
+  -- non-exmpty list inside. Note that the difference between
+  -- 'exposeNE' and 'toNonEmpty' is the constraint @Item (m a) ~ a@ in
+  -- the signature. It is needed only for the 'ShortFront' and
+  -- 'ShortRear' monads.
   exposeNE :: m a -> NonEmpty a
   default exposeNE :: (ItemNE (m a) ~ a) => m a -> NonEmpty a
   exposeNE = toNonEmpty
@@ -205,6 +219,14 @@ nonEmptyAny p (x :| xs) = p x || any p xs
 -- Magmas --
 ------------
 
+-- $magmas
+--
+-- This section contains monads that come about from free algebras of
+-- theories with one binary operation, that is, subcalsses of 'Magma'
+-- with no additional methods, but additional equations.
+
+-- | A very simple algebraic theory with one binary operations and no
+-- equations.
 class Magma a where
   (<>) :: a -> a -> a
 
@@ -520,6 +542,13 @@ instance (KnownNat n) => FreeRBM (StutterNE n) (StutterMagma n)
 -- The Head-Tails monad --
 --------------------------
 
+-- $others
+--
+-- In contrast to the possibly-empty-list case, there are known
+-- non-empty monads that arise from algebraic theories, but ones that
+-- cannot be presented with one binary operations (as in monads that
+-- come about from subclasses of 'Magma').
+
 -- | The head-tail-tail algebra has two operations: unary 'hd'
 -- (intuitively, it produces a singleton list with the head of the
 -- argument as the element) and ternary 'htt' (intuitively, it
@@ -637,7 +666,22 @@ class HeadHeadTail a where
   hd' :: a -> a
   ht  :: a -> a -> a
   hht :: a -> a -> a -> a
-
+  
+-- | The Heads-Tail monad arises from free head-head-tail algebras. Its unit is a dubleton, that is:
+--
+-- @
+-- return x = HeadsTail (x :| [x])
+-- @
+--
+-- Its join is defined as:
+--
+-- @
+-- join xss\@('splitSnoc' -> (xss', xs\@(_:|ys)))
+--   | 'isSingle' xss || 'isSingle' xs
+--   = (NonEmpty.head $ NonEmpty.head xss) :| []
+--   | otherwise
+--   = fromList $ map NonEmpty.head xss' ++ ys
+-- @
 newtype HeadsTail a = HeadsTail { unHeadsTail :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
