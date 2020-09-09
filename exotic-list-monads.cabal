@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c4303aec2c891bfcb6d4f319d8dcdd91a84155abbf94b3488a1c3f2e59bb3e9c
+-- hash: 694225a4baa8c99d097ef71a2162e205440315a41dbe9b5259eda93ef96577dd
 
 name:           exotic-list-monads
 version:        1.0.0
@@ -18,7 +18,7 @@ maintainer:     Maciej Piróg <maciej.adam.pirog@gmail.com>
 copyright:      (c) 2020 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
 license:        MIT
 license-file:   LICENSE
-tested-with:    GHC ==8.6.5 || ==8.8.3 || ==8.10.1
+tested-with:    GHC ==8.0.2 || ==8.2.2 || ==8.4.4 || ==8.6.5 || ==8.8.3 || ==8.10.1
 build-type:     Simple
 extra-source-files:
     README.md
