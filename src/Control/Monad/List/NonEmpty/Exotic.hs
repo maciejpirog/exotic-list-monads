@@ -1,12 +1,10 @@
 {-# LANGUAGE Trustworthy #-} -- can't use Safe due to IsList instance
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE UndecidableInstances #-} -- needed for NonEmptyMonad (IDXList m)
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -54,15 +52,17 @@
 -- @join@.
 --
 -- @
--- m '>>=' f = 'wrap' $ join $ 'map' ('unwrap' . f) $ 'unwrap' m
+-- m '>>=' f = 'wrap' $ join $ 'fmap' ('unwrap' . f) $ 'unwrap' m
 --  where
 --   join = ...
 -- @
 --
--- * Sometimes it is more readable to define the join in terms of possibly empty lists. In such a case, we call the local function @joinList@:
+-- * Sometimes it is more readable to define the join in terms of
+-- possibly-empty lists. In such a case, we call the local function
+-- @joinList@:
 --
 -- @
--- m '>>=' f = 'wrap' $ fromList $ joinList $ 'map' (toList . 'unwrap' . f) $ toList $ 'unwrap' m
+-- m '>>=' f = 'wrap' $ 'GHC.Exts.fromList' $ joinList $ 'map' ('GHC.Exts.toList' . 'unwrap' . f) $ 'GHC.Exts.toList' $ 'unwrap' m
 --  where
 --   joinList = ...
 -- @
@@ -72,7 +72,7 @@
 -- run-time performance. This is because the monads in this module
 -- don't seem to be of any practical use, they are more of a
 -- theoretical curiosity.
---
+
 
 module Control.Monad.List.NonEmpty.Exotic
   (
@@ -195,7 +195,7 @@ instance IsNonEmpty (NonEmpty a) where
 
 -- | In this module, a \"non-empty monad\" is a monad in which the
 -- underlying functor is isomorphic to 'Data.List.NonEmpty.NonEmpty'.
-class (Monad m, forall a. IsNonEmpty (m a)) => NonEmptyMonad m where
+class (Monad m) => NonEmptyMonad m where
 
   wrap   :: NonEmpty a -> m a
   default wrap   :: (IsNonEmpty (m a), ItemNE (m a) ~ a) => NonEmpty a -> m a
@@ -282,7 +282,7 @@ class Magma a where
 -- enough to declare the relationship, for example:
 --
 -- @
--- instance FreeRBM NonEmpty Data.Semigroup.Semigroup
+-- instance FreeRBM 'NonEmpty' 'Data.Semigroup.Semigroup'
 -- @
 class (NonEmptyMonad m) => FreeRBM m (c :: * -> Constraint) | m -> c where
   foldRBM :: (Magma a, c a) => (x -> a) -> m x -> a
@@ -308,6 +308,13 @@ class (Magma a) => XY a
 -- joinList xss = map head (takeWhile 'Control.Monad.List.Exotic.isSingle' (init xss))
 --                 ++ head (dropWhile 'Control.Monad.List.Exotic.isSingle' (init xss) ++ [last xss])
 -- @
+--
+-- Examples:
+--
+-- >>> toList $ unwrap (join ["a", "b", "c", "hello", "there"] :: Keeper Char)
+-- "abchello"
+-- >>> toList $ unwrap (join ["a", "b", "c", "hello"] :: Keeper Char)
+-- "abchello"
 newtype Keeper a = Keeper { unKeeper :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
@@ -338,6 +345,16 @@ instance XY (Keeper a)
 
 instance FreeRBM Keeper XY
 
+-- The following two are needed for examples in the docs:
+
+instance IsList (Keeper a) where
+  type Item (Keeper a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+instance IsString (Keeper Char) where
+  fromString = fromList
+
 -----------------------------------------
 -- The Non-Empty Discrete Hybrid monad --
 -----------------------------------------
@@ -355,6 +372,9 @@ class (Magma a) => YZ a
 -- @
 -- joinList xss = map last (init xss) ++ last xss
 -- @
+--
+-- See the possibly-empty version
+-- ('Control.Monad.List.Exotic.DiscreteHybrid') for more details.
 newtype DiscreteHybridNE a =
   DiscreteHybridNE { unDiscreteHybridNE :: NonEmpty a }
  deriving (Functor, Show, Eq)
@@ -401,8 +421,19 @@ class (Magma a) => XZ a
 -- of @joinList@) can be given as follows:
 --
 -- @
--- joinList xss = map last (init xss) ++ last xss
+-- joinList xss = map head (init xss) ++ last xss
 -- @
+--
+-- Examples:
+--
+-- >>> toList $ unwrap (join ["John", "Ronald", "Reuel", "Tolkien"] :: OpDiscreteHybridNE Char)
+-- "JRRTolkien"
+--
+-- Surprisingly, while the 'DiscreteHybridNE' monad has a counterpart
+-- for possibly-empty lists
+-- ('Control.Monad.List.Exotic.DiscreteHybrid'), the would-be
+-- counterpart of @OpDiscreteHybridNE@ obtained by taking first
+-- elements in the init is __not__ a monad.
 newtype OpDiscreteHybridNE a =
   OpDiscreteHybridNE { unOpDiscreteHybridNE :: NonEmpty a }
  deriving (Functor, Show, Eq)
@@ -432,6 +463,16 @@ instance XZ (OpDiscreteHybridNE a)
 
 instance FreeRBM OpDiscreteHybridNE XZ
 
+-- The following two are needed for examples in the docs:
+
+instance IsList (OpDiscreteHybridNE a) where
+  type Item (OpDiscreteHybridNE a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+instance IsString (OpDiscreteHybridNE Char) where
+  fromString = fromList
+
 --------------------------------------------
 -- The Non-empty Maze Walk monad --
 -------------------------------------------
@@ -444,12 +485,15 @@ instance FreeRBM OpDiscreteHybridNE XZ
 class (Magma a) => PalindromeMagma a
 
 -- | The non-empty maze walk monad arises from free
--- 'PalindromeMagma'-s Its join (in terms of @joinList@) can be given
+-- 'PalindromeMagma'-s. Its join (in terms of @joinList@) can be given
 -- as follows:
 --
 -- @
 -- joinList xss = map 'Control.Monad.List.Exotic.palindromize' (init xss) ++ last xss
 -- @
+--
+-- See the possibly-empty version
+-- ('Control.Monad.List.Exotic.MazeWalk') for more details.
 newtype MazeWalkNE a =
   MazeWalkNE { unMazeWalkNE :: NonEmpty a }
  deriving (Functor, Show, Eq)
@@ -492,7 +536,7 @@ instance FreeRBM MazeWalkNE PalindromeMagma
 -- @
 class (KnownNat n, Magma a) => StutterMagma n a
 
--- | The non-empty maze walk monad arises from free 'StutterMagma'-s.
+-- | The non-empty stutter monad arises from free 'StutterMagma'-s.
 -- Its join (in terms of @joinList@) can be given as follows:
 --
 -- @
@@ -505,10 +549,10 @@ class (KnownNat n, Magma a) => StutterMagma n a
 --
 -- Examples:
 --
--- >>> join ["a", "b", "c", "hello", "there"] :: StutterNE 5 Char
--- StutterNE ('a' :| "bchhhhhhh")
--- >>> join ["a", "b", "c", "hello"] :: StutterNE 5 Char
--- StutterNE ('a' :| "bchello")
+-- >>> toList $ unwrap (join ["a", "b", "c", "hello", "there"] :: StutterNE 5 Char)
+-- "abchhhhhhh"
+-- >>> toList $ unwrap (join ["a", "b", "c", "hello"] :: StutterNE 5 Char)
+-- "abchello"
 
 newtype StutterNE (n :: Nat) a =
   StutterNE { unStutterNE :: NonEmpty a }
@@ -539,14 +583,6 @@ instance (KnownNat n) => IsNonEmpty (StutterNE n a) where
   fromNonEmpty = StutterNE
   toNonEmpty = unStutterNE
 
-instance (KnownNat n) => IsList (StutterNE n a) where
-  type Item (StutterNE n a) = a
-  fromList = fromNonEmpty . fromList
-  toList = toList . toNonEmpty
-
-instance (KnownNat n) => IsString (StutterNE n Char) where
-  fromString = fromList
-
 instance (KnownNat n) => NonEmptyMonad (StutterNE n)
 
 instance (KnownNat n) => Magma (StutterNE n a) where
@@ -555,6 +591,16 @@ instance (KnownNat n) => Magma (StutterNE n a) where
 instance (KnownNat n) => StutterMagma n (StutterNE n a)
 
 instance (KnownNat n) => FreeRBM (StutterNE n) (StutterMagma n)
+
+-- The following two are needed for examples in the docs:
+
+instance (KnownNat n) => IsList (StutterNE n a) where
+  type Item (StutterNE n a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+instance (KnownNat n) => IsString (StutterNE n Char) where
+  fromString = fromList
 
 --------------------------
 -- The Head-Tails monad --
@@ -610,6 +656,11 @@ class HeadTailTail a where
 -- @
 -- join ((x :| _) :| xss) = x :| concatMap NonEmpty.tail xss
 -- @
+--
+-- For example:
+--
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: HeadTails Char)
+-- "Jauleorgeingo"
 newtype HeadTails a = HeadTails { unHeadTails :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
@@ -642,6 +693,16 @@ foldHeadTails :: (HeadTailTail a) => (g -> a) -> HeadTails g -> a
 foldHeadTails f (HeadTails (x :| [])) = hd (f x)
 foldHeadTails f (HeadTails (x :| (y : ys))) =
   htt (f x) (f y) (foldHeadTails f $ HeadTails $ y :| ys)
+  
+-- The following two are needed for examples in the docs:
+
+instance IsList (HeadTails a) where
+  type Item (HeadTails a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+instance IsString (HeadTails Char) where
+  fromString = fromList
 
 --------------------------
 -- The Heads-Tail monad --
@@ -700,6 +761,11 @@ class HeadHeadTail a where
 --   | otherwise
 --   = fromList $ map NonEmpty.head xss' ++ ys
 -- @
+--
+-- For example:
+--
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: HeadsTail Char)
+-- "JPGingo"
 newtype HeadsTail a = HeadsTail { unHeadsTail :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
@@ -740,6 +806,16 @@ foldHeadsTail f (HeadsTail (x :| [y, z]))   = hht (f x) (f y) (f z)
 foldHeadsTail f (HeadsTail (x :| (y : ys))) =
   hht (f x) (f y) (foldHeadsTail f $ HeadsTail $ y :| ys)
 
+-- The following two are needed for examples in the docs:
+
+instance IsList (HeadsTail a) where
+  type Item (HeadsTail a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+instance IsString (HeadsTail Char) where
+  fromString = fromList
+
 ------------------
 -- The ΑΩ monad --
 ------------------
@@ -755,6 +831,11 @@ foldHeadsTail f (HeadsTail (x :| (y : ys))) =
 --          =  NonEmpty.head (NonEmpty.head xss)
 --          :| NonEmpty.last (NonEmpty.last xss) : []
 -- @
+--
+-- For example:
+--
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaOmega Char)
+-- "Jo"
 newtype AlphaOmega a = AlphaOmega { unAlphaOmega :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
@@ -779,13 +860,23 @@ instance IsNonEmpty (AlphaOmega a) where
 
 instance NonEmptyMonad AlphaOmega
 
+-- The following two are needed for examples in the docs:
+
+instance IsList (AlphaOmega a) where
+  type Item (AlphaOmega a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+instance IsString (AlphaOmega Char) where
+  fromString = fromList
+
 -------------------------------
 -- Dual non-empty list monad --
 -------------------------------
 
 liftNEFun :: (NonEmptyMonad m)
-          => (NonEmpty (ItemNE (m a)) -> NonEmpty (ItemNE (m a))) -> m a -> m a
-liftNEFun f = fromNonEmpty . f . toNonEmpty
+          => (NonEmpty a -> NonEmpty a) -> m a -> m a
+liftNEFun f = wrap . f . unwrap
 
 -- | Every non-empty list monad has a dual, in which join is defined
 -- as
@@ -815,10 +906,10 @@ instance (NonEmptyMonad m) => Monad (DualNonEmptyMonad m) where
     liftNEFun NonEmpty.reverse m >>=
       liftNEFun NonEmpty.reverse . unDualNonEmptyMonad . f
 
-instance (NonEmptyMonad m) => IsNonEmpty (DualNonEmptyMonad m a) where
+instance (IsNonEmpty (m a)) => IsNonEmpty (DualNonEmptyMonad m a) where
   type ItemNE (DualNonEmptyMonad m a) = ItemNE (m a)
-  toNonEmpty (DualNonEmptyMonad m) = toNonEmpty m
-  fromNonEmpty xs = DualNonEmptyMonad (fromNonEmpty xs)
+  toNonEmpty (DualNonEmptyMonad m)    = toNonEmpty m
+  fromNonEmpty xs                     = DualNonEmptyMonad (fromNonEmpty xs)
 
 instance (NonEmptyMonad m) => NonEmptyMonad (DualNonEmptyMonad m) where
   wrap   = DualNonEmptyMonad . wrap
@@ -850,12 +941,12 @@ instance (ListMonad m) => Monad (IdXList m) where
   return x          = IdXList x (return x)
   IdXList x m >>= f = IdXList (componentId $ f x) (m >>= componentM . f)
 
-instance (ListMonad m, Item (m a) ~ a) => IsNonEmpty (IdXList m a) where
-  type ItemNE  (IdXList m a)  = a
-  fromNonEmpty (x :| xs)      = IdXList x $ List.Exotic.wrap xs
-  toNonEmpty   (IdXList x m)  = x :| List.Exotic.unwrap m
+instance (ListMonad m) => IsNonEmpty (IdXList m a) where
+  type ItemNE (IdXList m a)  = a
+  fromNonEmpty (x :| xs)     = IdXList x $ List.Exotic.wrap xs
+  toNonEmpty   (IdXList x m) = x :| List.Exotic.unwrap m
   
-instance (ListMonad m, forall a. IsNonEmpty (IdXList m a)) => NonEmptyMonad (IdXList m)
+instance (ListMonad m) => NonEmptyMonad (IdXList m)
 
 ---------------------------
 -- The Short Front monad --
@@ -878,7 +969,7 @@ class (NonEmptyMonad m) => HasShortFront m
 -- where @joinList@ in the @otherwise@ branch is the @joinList@ of the transformed monad.
 --
 -- While there are quite a few \"short front\" monads on non-empty
--- lists, only one such monad on possibly empty lists is known,
+-- lists, only one such monad on possibly-empty lists is known,
 -- 'Control.Monad.List.Exotic.StutterKeeper' (the short version is
 -- 'Control.Monad.List.Exotic.ShortStutterKeeper').
 newtype ShortFront m (p :: Nat) a = ShortFront { unShortFront :: m a }
@@ -890,17 +981,17 @@ instance (HasShortFront m, KnownNat p) => Applicative (ShortFront m p) where
 
 instance (HasShortFront m, KnownNat p) => Monad (ShortFront m p) where
   return = ShortFront . return
-  ShortFront m >>= f | isSingle (toNonEmpty m)
+  ShortFront m >>= f | isSingle (unwrap m)
                      = ShortFront $ m >>= unShortFront . f
                      | nonEmptyAll isSingle
-                         $ unwrap (toNonEmpty . unShortFront . f <$> m)
+                         $ unwrap (unwrap . unShortFront . f <$> m)
                      = ShortFront $ m >>= unShortFront . f
                      | otherwise
                      = let p = fromIntegral $ natVal (Proxy :: Proxy p)
                        in  ShortFront $ liftNEFun (fromList . NonEmpty.take (p + 2))
                                       $ m >>= unShortFront . f
 
-instance (HasShortFront m, KnownNat p) => IsNonEmpty (ShortFront m p a) where
+instance (IsNonEmpty (m a), KnownNat p) => IsNonEmpty (ShortFront m p a) where
   type ItemNE (ShortFront m p a) = ItemNE (m a)
   toNonEmpty (ShortFront m) = toNonEmpty m
   fromNonEmpty xs = ShortFront (fromNonEmpty xs)
@@ -950,17 +1041,17 @@ nonEmptyTakeRear p = reverse . NonEmpty.take p . NonEmpty.reverse
 
 instance (HasShortRear m, KnownNat p) => Monad (ShortRear m p) where
   return = ShortRear . return
-  ShortRear m >>= f | isSingle (toNonEmpty m)
-                     = ShortRear $ m >>= unShortRear . f
-                     | nonEmptyAll isSingle
-                         $ unwrap (toNonEmpty . unShortRear . f <$> m)
-                     = ShortRear $ m >>= unShortRear . f
-                     | otherwise
-                     = let p = fromIntegral $ natVal (Proxy :: Proxy p)
-                       in  ShortRear $ liftNEFun (fromList . nonEmptyTakeRear (p + 2))
-                                     $ m >>= unShortRear . f
+  ShortRear m >>= f | isSingle (unwrap m)
+                    = ShortRear $ m >>= unShortRear . f
+                    | nonEmptyAll isSingle
+                        $ unwrap (unwrap . unShortRear . f <$> m)
+                    = ShortRear $ m >>= unShortRear . f
+                    | otherwise
+                    = let p = fromIntegral $ natVal (Proxy :: Proxy p)
+                      in  ShortRear $ liftNEFun (fromList . nonEmptyTakeRear (p + 2))
+                                    $ m >>= unShortRear . f
 
-instance (HasShortRear m, KnownNat p) => IsNonEmpty (ShortRear m p a) where
+instance (IsNonEmpty (m a), KnownNat p) => IsNonEmpty (ShortRear m p a) where
   type ItemNE (ShortRear m p a) = ItemNE (m a)
   toNonEmpty (ShortRear m) = toNonEmpty m
   fromNonEmpty xs = ShortRear (fromNonEmpty xs)

@@ -1,7 +1,6 @@
 {-# LANGUAGE Trustworthy #-} -- can't use Safe due to IsList instances
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -600,7 +599,7 @@ instance FreeRBPM ListUnfold SkewedAlgebra
 -- The Stutter monad --
 -----------------------
 
--- | A stutter algebra (for a given natural number /n/) is a pointed
+-- | A stutter algebra (for a given natural number @n@) is a pointed
 -- magma that satisfies the following equations:
 --
 -- @
@@ -610,7 +609,7 @@ instance FreeRBPM ListUnfold SkewedAlgebra
 -- @
 class (KnownNat n, PointedMagma a) => StutterAlgebra n a
 
--- | Repeat the last element on the list /n/ additional times, that is:
+-- | Repeat the last element on the list @n@ additional times, that is:
 --
 -- @
 -- replicateLast n [] = []
@@ -623,10 +622,10 @@ replicateLast n xs = xs ++ replicate n (last xs)
 -- | The Stutter monad arises from free stutter algebras. Its join is
 -- a concat of the longest prefix consisting only of singletons with a
 -- \"stutter\" on the last singleton (that is, the last singleton is
--- additionally repeated /n+1/ times for an /n/ fixed in the type). It
+-- additionally repeated @n+1@ times for an @n@ fixed in the type). It
 -- doesn't stutter only when the init consists only of singletons and
 -- the last list is non-empty. The join can thus be defined as follows
--- (omitting the conversion of the type-level 'Nat' /n/ to a run-time
+-- (omitting the conversion of the type-level 'Nat' @n@ to a run-time
 -- value):
 --
 -- @
@@ -698,7 +697,7 @@ instance (KnownNat n) => FreeRBPM (Stutter n) (StutterAlgebra n)
 -- The Stutter-Keeper monad --
 ------------------------------
 
--- | A stutter-keeper algebra (for a given natural number /n/) is a pointed
+-- | A stutter-keeper algebra (for a given natural number @n@) is a pointed
 -- magma that satisfies the following equations:
 --
 -- @
@@ -712,7 +711,7 @@ class (KnownNat n, PointedMagma a) => StutterKeeperAlgebra n a
 -- stutters (as in the 'Stutter' monad) if the first non-singleton
 -- list in empty. Otherwise, it keeps the singleton prefix, and keeps
 -- the first non-singleton list. The join can thus be defined as
--- follows (omitting the conversion of the type-level 'Nat' /n/ to a
+-- follows (omitting the conversion of the type-level 'Nat' @n@ to a
 -- run-time value):
 --
 -- @
@@ -728,7 +727,7 @@ class (KnownNat n, PointedMagma a) => StutterKeeperAlgebra n a
 -- Examples:
 --
 -- >>> join ["1", "2", "buckle", "my", "shoe"] :: StutterKeeper 5 Char
--- StutterKeeper "12buckle"
+  -- StutterKeeper "12buckle"
 -- >>> join ["1", "2", "buckle"] :: StutterKeeper 5 Char
 -- StutterKeeper "12buckle"
 -- >>> join ["1", "2", "", "my", "shoe"] :: StutterKeeper 5 Char
@@ -774,7 +773,7 @@ instance (KnownNat n) => FreeRBPM (StutterKeeper n) (StutterKeeperAlgebra n)
 -- The StutterStutter monad --
 ------------------------------
 
--- | A stutter-keeper algebra (for given natural numbesr /n/ and /m/)
+-- | A stutter-keeper algebra (for given natural numbesr @n@ and @m@)
 -- is a pointed magma that satisfies the following equations:
 --
 -- @
