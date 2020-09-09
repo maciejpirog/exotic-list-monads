@@ -13,6 +13,7 @@ bug-reports: http://github.com/maciejpirog/exotic-list-monads/issues
 
 extra-source-files:
   - README.md
+  - CHANGELOG.md
   - degrading-lists.pdf
 
 ghc-options:

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 694225a4baa8c99d097ef71a2162e205440315a41dbe9b5259eda93ef96577dd
+-- hash: d8bad60fc0a7573c702039797f7320d100d283efcb79d5789c85819c1c7ff760
 
 name:           exotic-list-monads
 version:        1.0.0
@@ -22,6 +22,7 @@ tested-with:    GHC ==8.0.2 || ==8.2.2 || ==8.4.4 || ==8.6.5 || ==8.8.3 || ==8.1
 build-type:     Simple
 extra-source-files:
     README.md
+    CHANGELOG.md
     degrading-lists.pdf
 
 source-repository head
