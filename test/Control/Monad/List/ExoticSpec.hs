@@ -49,6 +49,7 @@ deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 3 5 a)
 
 testMonad :: forall m. (Eq (Item (m Int)), ListMonad m, Arbitrary (m Int),
                         Arbitrary (m (m (m Int))),
+                        IsList (m Int),
                         Show (m Int), Show (m (m (m Int))))
           => String -> Proxy m -> SpecWith ()
 testMonad name _ =
