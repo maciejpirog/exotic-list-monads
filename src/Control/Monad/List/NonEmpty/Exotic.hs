@@ -64,7 +64,7 @@
 -- @
 -- m '>>=' f = 'wrap' $ fromList $ joinList $ 'map' (toList . 'unwrap' . f) $ toList $ 'unwrap' m
 --  where
---   join = ...
+--   joinList = ...
 -- @
 --
 -- 
