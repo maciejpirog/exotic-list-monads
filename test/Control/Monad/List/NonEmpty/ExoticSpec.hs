@@ -7,7 +7,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE MultiParamTypeClasses, QuantifiedConstraints, UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
