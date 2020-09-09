@@ -1,8 +1,12 @@
 # exotic-list-monads
 
-[![Build Status](https://api.travis-ci.com/maciejpirog/exotic-list-monads.png?branch=master)](http://travis-ci.com/maciejpirog/exotic-list-monads)
+[![Hackage](https://img.shields.io/hackage/v/exotic-list-monads.svg)](https://hackage.haskell.org/package/exotic-list-monads) [![Build Status](https://api.travis-ci.com/maciejpirog/exotic-list-monads.png?branch=master)](http://travis-ci.com/maciejpirog/exotic-list-monads)
 
-A Haskell library with non-standard monads on lists and non-empty lists 
+A Haskell library with non-standard monads on lists and non-empty lists
+
+- Monads on lists: [Control.Monad.List.Exotic](https://hackage.haskell.org/package/exotic-list-monads-1.0.0/docs/Control-Monad-List-Exotic.html)
+
+- Monads on non-empty lists: [Control.Monad.List.NonEmpty.Exotic](https://hackage.haskell.org/package/exotic-list-monads-1.0.0/docs/Control-Monad-List-NonEmpty-Exotic.html)
 
 ## Description
 
