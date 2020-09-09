@@ -30,26 +30,44 @@
 --
 -- The usual list monad is only one of infinitely many ways to turn
 -- the 'NonEmpty.NonEmpty' (list) functor into a monad. This module
--- collects a number of such exotic "non-empty list monads".
+-- collects a number of such exotic "non-empty list monads".  Most of
+-- them have been introduced in the paper [Degrading
+-- Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf)
+-- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (PPDP 2020).
 --
 -- __Notes:__
 --
 -- * Types marked with \"(?)\" have not been formally verified to be
--- monads (yet), though they were thoroughly tested (at least 1
--- billion QuickCheck tests each).
+-- monads (yet),  though they were thoroughly tested with billions of
+-- QuickCheck tests.
 --
 -- * Monads in this module are presented in terms of @join@ rather
--- than '>>='. If not stated otherwise for a particular monad,
--- 'return' is singleton.
+-- than '>>=', while 'return' is singleton, unless stated otherwise
+-- for a particular monad (e.g., 'HeadTails', 'HeadsTail', or
+-- 'IdXList').
 --
--- * For readability, code snippets in this documentation assume
--- @OverloadedLists@ and @OverloadedStrings@, which allow us to omit
--- some @newtype@ constructors. Example definitions of joins of monads
--- always skip the @newtype@ constructors. Moreover (again, for
--- readability) some joins are presented in this documentation as if
--- they were on lists and not non-empty lists (such joins are dubbed
--- @joinList@).
+-- * For readability, code snippets in this documentation assume the
+-- @OverloadedLists@ and @OverloadedStrings@ extensions, which allow
+-- us to omit some @newtype@ constructors. Example definitions of
+-- joins of monads always skip the @newtype@ constructors, that is,
+-- assume '>>=' is always defined as follows for a particular local
+-- @join@.
 --
+-- @
+-- m '>>=' f = 'wrap' $ join $ 'map' ('unwrap' . f) $ 'unwrap' m
+--  where
+--   join = ...
+-- @
+--
+-- * Sometimes it is more readable to define the join in terms of possibly empty lists. In such a case, we call the local function @joinList@:
+--
+-- @
+-- m '>>=' f = 'wrap' $ fromList $ joinList $ 'map' (toList . 'unwrap' . f) $ toList $ 'unwrap' m
+--  where
+--   join = ...
+-- @
+--
+-- 
 -- * The definitions of monads are optimized for readability and not
 -- run-time performance. This is because the monads in this module
 -- don't seem to be of any practical use, they are more of a
