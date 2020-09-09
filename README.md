@@ -2,7 +2,7 @@
 
 [![Build Status](https://api.travis-ci.com/maciejpirog/exotic-list-monads.png?branch=master)](http://travis-ci.com/maciejpirog/exotic-list-monads)
 
-A Haskell library that defines a few non-standard monads on lists and non-empty lists 
+A Haskell library with non-standard monads on lists and non-empty lists 
 
 ## Description
 
