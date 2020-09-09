@@ -269,8 +269,8 @@ instance PointedMagma [a] where
 -- the theory @c@. This gives us the function
 --
 -- @
--- foldRBPM _ ('toList' -> []) = 'eps'
--- foldRBPM f ('toList' -> xs) = 'foldr1' ('<>') ('map' f xs)
+-- foldRBPM _ ('unwrap' -> []) = 'eps'
+-- foldRBPM f ('unwrap' -> xs) = 'foldr1' ('<>') ('map' f xs)
 -- @
 --
 -- which is the unique lifting of an interpretation of generators to a
