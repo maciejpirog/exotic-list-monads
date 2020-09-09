@@ -1,5 +1,6 @@
-{-# LANGUAGE Trustworthy #-} -- can't use Safe due to IsList instance
+{-# LANGUAGE Trustworthy #-} -- can't use Safe due to IsList instances
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -30,37 +31,42 @@
 --
 -- The usual list monad is only one of infinitely many ways to turn
 -- the List functor into a monad. This module collects a number of
--- such exotic "list monads".
+-- such exotic "list monads". Most of them have been introduced in the
+-- paper [Degrading Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf)
+-- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (PPDP 2020).
 --
 -- __Notes:__
 --
 -- * Types marked with \"(?)\" have not been formally verified to be
--- monads (yet), though they were thoroughly tested (at least 1
--- billion QuickCheck tests each).
+-- monads (yet), though they were thoroughly tested with billions of
+-- QuickCheck tests.
 --
--- * For readability, code snippets in this documentation assume
--- @OverloadedLists@ and @OverloadedStrings@, which allow us to omit
--- some @newtype@ constructors. Example definitions of joins of monads
--- always skip the @newtype@ constructors.
+-- * Monads in this module are presented in terms of @join@ rather
+-- than '>>='. In each case 'return' is singleton (it is not known if
+-- there exists a monad on lists with a different return).
+--
+-- * For readability, code snippets in this documentation assume the
+-- @OverloadedLists@ and @OverloadedStrings@ extensions, which allow
+-- us to omit some @newtype@ constructors. Example definitions of
+-- joins of monads always skip the @newtype@ constructors, that is,
+-- assume '>>=' is always defined as follows for a particular local
+-- @join@:
+--
+-- @
+-- m '>>=' f = 'wrap' $ join $ 'map' ('unwrap' . f) $ 'unwrap' m
+--  where
+--   join = ...
+-- @
 --
 -- * The definitions of monads are optimized for readability and not
 -- run-time performance. This is because the monads in this module
 -- don't seem to be of any practical use, they are more of a
 -- theoretical curiosity.
---
--- * Monads in this module are presented in terms of @join@ rather
--- than '>>='. In each case 'return' is singleton (it is not known if
--- there exist monads on lists with a different return; they exist on
--- non-empty lists though, for example,
---  'Control.Monad.List.NonEmpty.Exotic.HeadTails',
---  'Control.Monad.List.NonEmpty.Exotic.HeadsTail',
---  'Control.Monad.List.NonEmpty.Exotic.IdXList').
-
 module Control.Monad.List.Exotic
   (
   -- * List monads in general
 
-    ListMonad
+    ListMonad(wrap, unwrap)
   , DualListMonad(..)
   , isSingle
 
@@ -141,13 +147,30 @@ import qualified Data.Monoid (Monoid)
 ----------------------------
 
 -- | In this module, a \"list monad\" is a monad in which the
--- underlying functor is isomorphic to List.
-class (Monad m, forall a. IsList (m a)) => ListMonad m
+-- underlying functor is isomorphic to List. We require:
+--
+-- @
+-- wrap . unwrap  ==  id
+-- unwrap . wrap  ==  id
+-- @
+--
+-- There is a default implementation provided if @m@ is known to be a
+-- list (meaning @m a@ is an instance of 'GHC.Exts.IsList' for all
+-- @a@).
+class (Monad m) => ListMonad m where
+
+  wrap   :: [a] -> m a
+  default wrap   :: (IsList (m a), Item (m a) ~ a) => [a] -> m a
+  wrap = fromList
+  
+  unwrap :: m a -> [a]
+  default unwrap :: (IsList (m a), Item (m a) ~ a) => m a -> [a]
+  unwrap = toList
 
 instance ListMonad []
 
-liftListFun :: (ListMonad m) => ([Item (m a)] -> [Item (m a)]) -> m a -> m a
-liftListFun f = fromList . f . toList
+liftListFun :: (ListMonad m) => ([a] -> [a]) -> m a -> m a
+liftListFun f = wrap . f . unwrap
 
 -- | Every list monad has a dual, in which join is defined as
 --
@@ -174,12 +197,14 @@ instance (ListMonad m) => Monad (DualListMonad m) where
   DualListMonad m >>= f = DualListMonad $ liftListFun reverse $
     liftListFun reverse m >>= liftListFun reverse . unDualListMonad . f
 
-instance (ListMonad m) => IsList (DualListMonad m a) where
+instance (ListMonad m, IsList (m a)) => IsList (DualListMonad m a) where
   type Item (DualListMonad m a) = Item (m a)
   toList (DualListMonad m) = toList m
   fromList xs = DualListMonad (fromList xs)
 
-instance (ListMonad m) => ListMonad (DualListMonad m)
+instance (ListMonad m) => ListMonad (DualListMonad m) where
+  wrap   = DualListMonad . wrap
+  unwrap = unwrap . unDualListMonad 
 
 -- | Checks if a given list is a singleton (= list of length one).
 isSingle :: [a] -> Bool
@@ -189,13 +214,15 @@ isSingle _   = False
 -- $finite_presentation
 --
 -- This section contains monads that come about from free algebras of
--- theories with finite number of operations, represented as type
+-- theories with a finite number of operations, represented as type
 -- classes. Coincidentally, all theories in this module have one
 -- binary and one nullary operation, that is, each is a subclass of
 -- "PointedMagma" with additional laws. (So does the usual list monad,
--- where the subclass is monoid.) It is not known if there exist list
--- monads that have a finite presentation but necessarily with a
--- different set of operations.
+-- where the subclass is monoid.) It is not known if there exists a
+-- list monad that have a finite presentation but necessarily with a
+-- different set of operations (there are such monads on non-empty
+-- lists, for example, 'Control.Monad.List.NonEmpty.Exotic.HeadTails'
+-- and 'Control.Monad.List.NonEmpty.Exotic.HeadsTail').
 
 ---------------------
 -- Pointed magamas --
@@ -211,8 +238,8 @@ instance PointedMagma [a] where
   eps  = []
   (<>) = (++)
 
--- | The name of the class stands for __free right-braketed__
--- (subclass of) __pointed magma__. Here's why:
+-- | A class for __free right-braketed__ (subclasses of) __pointed
+-- magmas__.
 --
 -- Most of the monads defined in this module arise from subclasses of
 -- 'PointedMagma', in which we do not assume any additional methods,
@@ -242,8 +269,8 @@ instance PointedMagma [a] where
 -- the theory @c@. This gives us the function
 --
 -- @
--- foldRBPM _ (toList -> []) = eps
--- foldRBPM f (toList -> xs) = foldr1 (<>) (map f xs)
+-- foldRBPM _ ('toList' -> []) = 'eps'
+-- foldRBPM f ('toList' -> xs) = 'foldr1' ('<>') ('map' f xs)
 -- @
 --
 -- which is the unique lifting of an interpretation of generators to a
@@ -255,12 +282,12 @@ instance PointedMagma [a] where
 -- enough to declare the relationship, for example:
 --
 -- @
--- instance FreeRBPM [] Data.Monoid.Monoid
+-- instance FreeRBPM [] 'Data.Monoid.Monoid'
 -- @
 class (ListMonad m) => FreeRBPM m (c :: * -> Constraint) | m -> c where
-  foldRBPM :: (PointedMagma a, c a) => (Item (m x) -> a) -> m x -> a
-  foldRBPM _ (toList -> []) = eps
-  foldRBPM f (toList -> xs) = foldr1 (<>) (map f xs)
+  foldRBPM :: (PointedMagma a, c a) => (x -> a) -> m x -> a
+  foldRBPM _ (unwrap -> []) = eps
+  foldRBPM f (unwrap -> xs) = foldr1 (<>) (map f xs)
 
 instance FreeRBPM [] Data.Monoid.Monoid
 
@@ -436,8 +463,8 @@ instance FreeRBPM MazeWalk PalindromeAlgebra
 -- @
 class (PointedMagma a) => LeaningAlgebra a
 
--- | Gives a singleton list with the last element of the argument, if
--- it exists. Otherwise, returns empty.
+-- | A singleton list with the last element of the argument,
+-- if it exists. Otherwise, empty.
 --
 -- @
 -- safeLast \"Roy\"  ==  \"y\"
@@ -455,6 +482,16 @@ safeLast xs = [last xs]
 --          | null (last xss) = []
 --          | otherwise       = concatMap safeLast (init xss) ++ last xss
 -- @
+--
+-- For example:
+--
+-- >>> join ["Roy", "Kelton", "Orbison"] :: DiscreteHybrid Char
+-- DiscreteHybrid "ynOrbison"
+-- >>> join ["Roy", "", "Orbison"] :: DiscreteHybrid Char
+-- DiscreteHybrid "yOrbison"
+--
+-- Different versions of hybrid monads originate from Renato Neves's
+-- [PhD thesis](http://alfa.di.uminho.pt/~nevrenato/pdfs/thesis.pdf).
 newtype DiscreteHybrid a = DiscreteHybrid { unDiscreteHybrid :: [a] }
  deriving (Functor, Show, Eq)
 
@@ -515,6 +552,15 @@ class (PointedMagma a) => SkewedAlgebra a
 --          | any (not . isSingle) (init xss) = []
 --          | otherwise                       = concat xss
 -- @
+--
+-- For example:
+--
+-- >>> [1,1,1,4] >>= \x -> [1..x] :: ListUnfold Int
+-- ListUnfold [1,1,1,1,2,3,4]
+-- >>> [1,2,1,4] >>= \x -> [1..x] :: ListUnfold Int
+-- ListUnfold []
+-- >>> [1,0,1,4] >>= \x -> [1..x] :: ListUnfold Int
+-- ListUnfold []
 newtype ListUnfold a = ListUnfold { unListUnfold :: [a] }
  deriving (Functor, Show, Eq)
 
@@ -817,6 +863,13 @@ instance (KnownNat n, KnownNat m)
 --          | otherwise        = []
 -- @
 --
+-- For example:
+--
+-- >>> join ["HelloThere"] :: Mini Char
+-- Mini "HelloThere"
+-- >>> join ["Hello", "There"] :: Mini Char
+-- Mini ""
+--
 -- It does not arise from a subclass of 'PointedMagma' (or any
 -- algebraic theory with a finite number of operations for that 
 -- matter).
@@ -855,12 +908,21 @@ instance ListMonad Mini
 -- laws), it returns an empty list.
 --
 -- @
--- join xss | isSingle xss     = concat xss
---          | all isSingle xss = concat xss
---          | odd (length xss) && all (odd . length) xss
---                             = concat xss 
---          | otherwise        = []
+-- join xss | isSingle xss               = concat xss
+--          | all isSingle xss           = concat xss
+--          | odd (length xss)
+--             && all (odd . length) xss = concat xss 
+--          | otherwise                  = []
 -- @
+--
+-- For example:
+--
+-- >>> join ["Elvis", "Presley"] :: Odd Char
+-- Odd ""
+-- >>> join ["Elvis", "Aaron", "Presley"] :: Odd Char
+-- Odd "ElvisAaronPresley"
+-- >>> join ["Roy", "Kelton", "Orbison"] :: Odd Char
+-- Odd ""
 --
 -- At the moment, it is unclear whether it comes from a finite
 -- algebraic theory (or that it is indeed a monad).
@@ -896,9 +958,9 @@ instance ListMonad Odd
 ------------------------------------
 
 -- | This monad works just like the 'StutterKeeper' monad but it takes
--- a prefix of the result of join of length /p+2/ (unless the unit
+-- a prefix of the result of join of length @p+2@ (unless the unit
 -- laws say otherwise). Thus, its join is defined as follows (omitting
--- the conversion of the type-level 'Nat' /p/ to a run-time value):
+-- the conversion of the type-level 'Nat' @p@ to a run-time value):
 --
 -- @
 -- join xss | isSingle xss     = concat xss
@@ -907,6 +969,18 @@ instance ListMonad Odd
 --                                 ((Control.Monad.join $ StutterKeeper $ fmap StutterKeeper xss)
 --                                   :: StutterKeeper n _)
 -- @
+--
+-- For example:
+--
+-- >>> join ["1", "2", "buckle", "my", "shoe"] :: ShortStutterKeeper 5 2 Char
+-- ShortStutterKeeper "12bu"
+-- >>> join ["1", "2", "buckle"] :: ShortStutterKeeper 5 2 Char
+-- ShortStutterKeeper "12bu"
+-- >>> join ["1", "2", "", "my", "shoe"] :: ShortStutterKeeper 5 2 Char
+-- ShortStutterKeeper "1222"
+--
+-- Compare the 'Control.Monad.List.NonEmpty.Exotic.ShortFront' monad
+-- on non-empty lists.
 newtype ShortStutterKeeper (n :: Nat) (p :: Nat) a =
   ShortStutterKeeper { unShortStutterKeeper :: [a] }
  deriving (Functor, Show, Eq)

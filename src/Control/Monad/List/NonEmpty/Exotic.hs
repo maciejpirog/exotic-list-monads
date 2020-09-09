@@ -157,6 +157,7 @@ import GHC.TypeLits
 import Data.Proxy
 import qualified Data.Semigroup (Semigroup)
 import Control.Monad.List.Exotic (ListMonad, palindromize)
+import qualified Control.Monad.List.Exotic as List.Exotic (ListMonad(..))
 
 ---------------------------
 -- Non-empty list monads --
@@ -177,15 +178,14 @@ instance IsNonEmpty (NonEmpty a) where
 -- | In this module, a \"non-empty monad\" is a monad in which the
 -- underlying functor is isomorphic to 'Data.List.NonEmpty.NonEmpty'.
 class (Monad m, forall a. IsNonEmpty (m a)) => NonEmptyMonad m where
-  -- | Since GHC does not allow a constrainst of the shape @forall
-  -- a. ItemNE (m a) ~ a@, we sometimes have to be explicit about the
-  -- non-exmpty list inside. Note that the difference between
-  -- 'exposeNE' and 'toNonEmpty' is the constraint @Item (m a) ~ a@ in
-  -- the signature. It is needed only for the 'ShortFront' and
-  -- 'ShortRear' monads.
-  exposeNE :: m a -> NonEmpty a
-  default exposeNE :: (ItemNE (m a) ~ a) => m a -> NonEmpty a
-  exposeNE = toNonEmpty
+
+  wrap   :: NonEmpty a -> m a
+  default wrap   :: (IsNonEmpty (m a), ItemNE (m a) ~ a) => NonEmpty a -> m a
+  wrap = fromNonEmpty
+  
+  unwrap :: m a -> NonEmpty a
+  default unwrap :: (IsNonEmpty (m a), ItemNE (m a) ~ a) => m a -> NonEmpty a
+  unwrap = toNonEmpty
 
 instance NonEmptyMonad NonEmpty
 
@@ -267,8 +267,8 @@ class Magma a where
 -- instance FreeRBM NonEmpty Data.Semigroup.Semigroup
 -- @
 class (NonEmptyMonad m) => FreeRBM m (c :: * -> Constraint) | m -> c where
-  foldRBM :: (Magma a, c a) => (ItemNE (m x) -> a) -> m x -> a
-  foldRBM f (toNonEmpty -> toList -> xs) = foldr1 (<>) (map f xs)
+  foldRBM :: (Magma a, c a) => (x -> a) -> m x -> a
+  foldRBM f (unwrap -> toList -> xs) = foldr1 (<>) (map f xs)
 
 instance FreeRBM NonEmpty Data.Semigroup.Semigroup
 
@@ -803,7 +803,8 @@ instance (NonEmptyMonad m) => IsNonEmpty (DualNonEmptyMonad m a) where
   fromNonEmpty xs = DualNonEmptyMonad (fromNonEmpty xs)
 
 instance (NonEmptyMonad m) => NonEmptyMonad (DualNonEmptyMonad m) where
-  exposeNE = exposeNE . unDualNonEmptyMonad
+  wrap   = DualNonEmptyMonad . wrap
+  unwrap = unwrap . unDualNonEmptyMonad
 
 ---------------------------------------
 -- Product of Identity and ListMonad --
@@ -832,9 +833,9 @@ instance (ListMonad m) => Monad (IdXList m) where
   IdXList x m >>= f = IdXList (componentId $ f x) (m >>= componentM . f)
 
 instance (ListMonad m, Item (m a) ~ a) => IsNonEmpty (IdXList m a) where
-  type ItemNE (IdXList m a) = a
-  fromNonEmpty (x :| xs) = IdXList x (fromList xs)
-  toNonEmpty (IdXList x m) = x :| toList m
+  type ItemNE  (IdXList m a)  = a
+  fromNonEmpty (x :| xs)      = IdXList x $ List.Exotic.wrap xs
+  toNonEmpty   (IdXList x m)  = x :| List.Exotic.unwrap m
   
 instance (ListMonad m, forall a. IsNonEmpty (IdXList m a)) => NonEmptyMonad (IdXList m)
 
@@ -874,7 +875,7 @@ instance (HasShortFront m, KnownNat p) => Monad (ShortFront m p) where
   ShortFront m >>= f | isSingle (toNonEmpty m)
                      = ShortFront $ m >>= unShortFront . f
                      | nonEmptyAll isSingle
-                         $ exposeNE (toNonEmpty . unShortFront . f <$> m)
+                         $ unwrap (toNonEmpty . unShortFront . f <$> m)
                      = ShortFront $ m >>= unShortFront . f
                      | otherwise
                      = let p = fromIntegral $ natVal (Proxy :: Proxy p)
@@ -887,7 +888,8 @@ instance (HasShortFront m, KnownNat p) => IsNonEmpty (ShortFront m p a) where
   fromNonEmpty xs = ShortFront (fromNonEmpty xs)
 
 instance (HasShortFront m, KnownNat p) => NonEmptyMonad (ShortFront m p) where
-  exposeNE = exposeNE . unShortFront
+  wrap   = ShortFront . wrap
+  unwrap = unwrap . unShortFront
 
 instance HasShortFront NonEmpty
 
@@ -933,7 +935,7 @@ instance (HasShortRear m, KnownNat p) => Monad (ShortRear m p) where
   ShortRear m >>= f | isSingle (toNonEmpty m)
                      = ShortRear $ m >>= unShortRear . f
                      | nonEmptyAll isSingle
-                         $ exposeNE (toNonEmpty . unShortRear . f <$> m)
+                         $ unwrap (toNonEmpty . unShortRear . f <$> m)
                      = ShortRear $ m >>= unShortRear . f
                      | otherwise
                      = let p = fromIntegral $ natVal (Proxy :: Proxy p)
@@ -946,7 +948,8 @@ instance (HasShortRear m, KnownNat p) => IsNonEmpty (ShortRear m p a) where
   fromNonEmpty xs = ShortRear (fromNonEmpty xs)
 
 instance (HasShortRear m, KnownNat p) => NonEmptyMonad (ShortRear m p) where
-  exposeNE = exposeNE . unShortRear
+  wrap   = ShortRear . wrap
+  unwrap = unwrap . unShortRear
 
 instance HasShortRear NonEmpty
 
