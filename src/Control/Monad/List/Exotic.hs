@@ -707,12 +707,12 @@ instance (KnownNat n) => FreeRBPM (Stutter n) (StutterAlgebra n)
 -- @
 class (KnownNat n, PointedMagma a) => StutterKeeperAlgebra n a
 
--- | This monad arises from free stutter-keeper algebras. Its join
--- stutters (as in the 'Stutter' monad) if the first non-singleton
--- list in empty. Otherwise, it keeps the singleton prefix, and keeps
--- the first non-singleton list. The join can thus be defined as
--- follows (omitting the conversion of the type-level 'Nat' @n@ to a
--- run-time value):
+-- | The stutter-keeper monad arises from free stutter-keeper
+-- algebras. Its join stutters (as in the 'Stutter' monad) if the
+-- first non-singleton list in empty. Otherwise, it keeps the
+-- singleton prefix, and keeps the first non-singleton list. The join
+-- can thus be defined as follows (omitting the conversion of the
+-- type-level 'Nat' @n@ to a run-time value):
 --
 -- @
 -- join xss | null xss
@@ -773,7 +773,7 @@ instance (KnownNat n) => FreeRBPM (StutterKeeper n) (StutterKeeperAlgebra n)
 -- The StutterStutter monad --
 ------------------------------
 
--- | A stutter-keeper algebra (for given natural numbesr @n@ and @m@)
+-- | A stutter-stutter algebra (for given natural numbers @n@ and @m@)
 -- is a pointed magma that satisfies the following equations:
 --
 -- @
@@ -783,7 +783,13 @@ instance (KnownNat n) => FreeRBPM (StutterKeeper n) (StutterKeeperAlgebra n)
 -- @
 class (KnownNat n, KnownNat m, PointedMagma a) => StutterStutterAlgebra n m a
 
--- |
+-- | The stutter-stutter monad arises from free stutter-stutter
+-- algebras. It is similar to 'StutterKeeper', but instead of keeping
+-- the first non-singleton list, it stutters on its first element
+-- (unless the first non-singleton list is also the last list, in
+-- which case it is kept in the result). The join can thus be defined
+-- as follows (omitting the conversion of the type-level nats to
+-- run-time values):
 --
 -- @
 -- join xss | null xss
