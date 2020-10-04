@@ -956,6 +956,25 @@ instance (ListMonad m) => NonEmptyMonad (IdXList m)
 -- 'ShortFront' construction gives a monad.
 class (NonEmptyMonad m) => HasShortFront m
 
+instance HasShortFront NonEmpty
+
+-- | (?)
+instance HasShortFront Keeper
+
+-- | (?)
+instance HasShortFront OpDiscreteHybridNE
+
+-- | (?)
+instance HasShortFront MazeWalkNE
+
+-- | (?)
+instance (KnownNat n) => HasShortFront (StutterNE n)
+
+-- | (?)
+instance HasShortFront AlphaOmega
+
+instance (HasShortRear m) => HasShortFront (DualNonEmptyMonad m)
+
 -- | This is a transformer for a number of monads (instances of the
 -- 'HasShortFront' class), whose return is singleton and join takes
 -- the prefix of length @p + 2@ of the result of the join of the
@@ -972,6 +991,21 @@ class (NonEmptyMonad m) => HasShortFront m
 -- lists, only one such monad on possibly-empty lists is known,
 -- 'Control.Monad.List.Exotic.StutterKeeper' (the short version is
 -- 'Control.Monad.List.Exotic.ShortStutterKeeper').
+--
+-- For example:
+--
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortFront NonEmpty 4 Char)
+-- "JohnPa"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortFront MazeWalkNE 4 Char)
+-- "Johnho"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortFront OpDiscreteHybridNE 4 Char)
+-- "JPGRin"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortFront Keeper 4 Char)
+-- "John"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortFront (StutterNE 2) 4 Char)
+-- "JJJJ"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortFront (StutterNE 6) 4 Char)
+-- "JJJJJJ"
 newtype ShortFront m (p :: Nat) a = ShortFront { unShortFront :: m a }
  deriving (Functor, Show, Eq)
 
@@ -999,24 +1033,15 @@ instance (HasShortFront m, KnownNat p) => NonEmptyMonad (ShortFront m p) where
   wrap   = ShortFront . wrap
   unwrap = unwrap . unShortFront
 
-instance HasShortFront NonEmpty
+-- The following two are needed for examples in the docs:
 
--- | (?)
-instance HasShortFront Keeper
+instance (HasShortFront m, KnownNat p) => IsList (ShortFront m p a) where
+  type Item (ShortFront m p a) = a
+  fromList = wrap . fromList
+  toList = toList . unwrap
 
--- | (?)
-instance HasShortFront OpDiscreteHybridNE
-
--- | (?)
-instance HasShortFront MazeWalkNE
-
--- | (?)
-instance (KnownNat n) => HasShortFront (StutterNE n)
-
--- | (?)
-instance HasShortFront AlphaOmega
-
-instance (HasShortRear m) => HasShortFront (DualNonEmptyMonad m)
+instance (HasShortFront m, KnownNat p) => IsString (ShortFront m p Char) where
+  fromString = fromList
 
 ---------------------------
 -- The Short Rear monad --
@@ -1026,8 +1051,26 @@ instance (HasShortRear m) => HasShortFront (DualNonEmptyMonad m)
 -- 'ShortRear' construction gives a monad.
 class (NonEmptyMonad m) => HasShortRear m
 
+instance HasShortRear NonEmpty
+
+-- | (?)
+instance HasShortRear DiscreteHybridNE
+
+-- | (?)
+instance HasShortRear AlphaOmega
+
+instance (HasShortFront m) => HasShortRear (DualNonEmptyMonad m)
+
 -- | Similar to 'ShortFront', but gives a monad if restricted to a
 -- suffix of the length @p + 2@.
+--
+-- For example:
+--
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortRear NonEmpty 5 Char)
+-- "geRingo"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: ShortRear DiscreteHybridNE 5 Char)
+-- "leRingo"
+--
 newtype ShortRear m (p :: Nat) a = ShortRear { unShortRear :: m a }
  deriving (Functor, Show, Eq)
 
@@ -1058,12 +1101,12 @@ instance (HasShortRear m, KnownNat p) => NonEmptyMonad (ShortRear m p) where
   wrap   = ShortRear . wrap
   unwrap = unwrap . unShortRear
 
-instance HasShortRear NonEmpty
+-- The following two are needed for examples in the docs:
 
--- | (?)
-instance HasShortRear DiscreteHybridNE
+instance (HasShortRear m, KnownNat p) => IsList (ShortRear m p a) where
+  type Item (ShortRear m p a) = a
+  fromList = wrap . fromList
+  toList = toList . unwrap
 
--- | (?)
-instance HasShortRear AlphaOmega
-
-instance (HasShortFront m) => HasShortRear (DualNonEmptyMonad m)
+instance (HasShortRear m, KnownNat p) => IsString (ShortRear m p Char) where
+  fromString = fromList

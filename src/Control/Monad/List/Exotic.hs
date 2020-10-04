@@ -286,7 +286,7 @@ instance PointedMagma [a] where
 class (ListMonad m) => FreeRBPM m (c :: * -> Constraint) | m -> c where
   foldRBPM :: (PointedMagma a, c a) => (x -> a) -> m x -> a
   foldRBPM _ (unwrap -> []) = eps
-x  foldRBPM f (unwrap -> xs) = foldr1 (<>) (map f xs)
+  foldRBPM f (unwrap -> xs) = foldr1 (<>) (map f xs)
 
 instance FreeRBPM [] Data.Monoid.Monoid
 
