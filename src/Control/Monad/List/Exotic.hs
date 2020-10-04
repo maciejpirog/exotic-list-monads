@@ -237,8 +237,8 @@ instance PointedMagma [a] where
   eps  = []
   (<>) = (++)
 
--- | A class for __free right-braketed__ (subclasses of) __pointed
--- magmas__.
+-- | A class for __free right-braketed__ (subclasses of)
+-- __pointed magmas__.
 --
 -- Most of the monads defined in this module arise from subclasses of
 -- 'PointedMagma', in which we do not assume any additional methods,
@@ -286,7 +286,7 @@ instance PointedMagma [a] where
 class (ListMonad m) => FreeRBPM m (c :: * -> Constraint) | m -> c where
   foldRBPM :: (PointedMagma a, c a) => (x -> a) -> m x -> a
   foldRBPM _ (unwrap -> []) = eps
-  foldRBPM f (unwrap -> xs) = foldr1 (<>) (map f xs)
+x  foldRBPM f (unwrap -> xs) = foldr1 (<>) (map f xs)
 
 instance FreeRBPM [] Data.Monoid.Monoid
 
@@ -395,17 +395,17 @@ palindromize xs = xs ++ reverse (init xs)
 -- MazeWalk "JohnhoJPauluaPGeorgegroeGRingo"
 --
 -- It represents a walk through the following maze (the entrance is
--- marked with \"▶\"):
+-- marked with \">\"):
 --
 -- @
---  ┌──┬───┐
---  │LU│NGO│
---  ├╴A│I┌─┘
---  ▶JPGR│
--- ┌┘O│E┌┘
--- │NH│O└─┐
--- └──┤RGE│
---    └───┘
+--   ┌────┬──────┐
+--   │L U │ N G O│
+--   ├─┤A ┴ I┌───┘
+--  > J P G R│
+-- ┌─┘O ┬ E ┌┘
+-- │N H │ O └──┐
+-- └────┤ R G E│
+--      └──────┘
 -- @
 --
 -- First, we take the J-O-H-N path. When we reach its end, we turn

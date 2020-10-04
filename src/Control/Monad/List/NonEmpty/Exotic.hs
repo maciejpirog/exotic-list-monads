@@ -982,9 +982,8 @@ instance (HasShortFront m, KnownNat p) => Applicative (ShortFront m p) where
 instance (HasShortFront m, KnownNat p) => Monad (ShortFront m p) where
   return = ShortFront . return
   ShortFront m >>= f | isSingle (unwrap m)
-                     = ShortFront $ m >>= unShortFront . f
-                     | nonEmptyAll isSingle
-                         $ unwrap (unwrap . unShortFront . f <$> m)
+                     || nonEmptyAll isSingle
+                          (unwrap $ unwrap . unShortFront . f <$> m)
                      = ShortFront $ m >>= unShortFront . f
                      | otherwise
                      = let p = fromIntegral $ natVal (Proxy :: Proxy p)
@@ -1042,9 +1041,8 @@ nonEmptyTakeRear p = reverse . NonEmpty.take p . NonEmpty.reverse
 instance (HasShortRear m, KnownNat p) => Monad (ShortRear m p) where
   return = ShortRear . return
   ShortRear m >>= f | isSingle (unwrap m)
-                    = ShortRear $ m >>= unShortRear . f
-                    | nonEmptyAll isSingle
-                        $ unwrap (unwrap . unShortRear . f <$> m)
+                    || nonEmptyAll isSingle
+                         (unwrap $ unwrap . unShortRear . f <$> m)
                     = ShortRear $ m >>= unShortRear . f
                     | otherwise
                     = let p = fromIntegral $ natVal (Proxy :: Proxy p)
