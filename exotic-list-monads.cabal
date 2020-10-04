@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d8bad60fc0a7573c702039797f7320d100d283efcb79d5789c85819c1c7ff760
+-- hash: 5b5385de8f22ca1f51a19de7b8b393b9012fded676d9ea7412ac96fde7fc9d83
 
 name:           exotic-list-monads
-version:        1.0.0
+version:        1.0.1
 synopsis:       Non-standard monads on lists and non-empty lists
 description:    The usual list monad is only one of infinitely many ways to turn the list functor into a monad. The same applies to the usual non-empty list monad and the non-empty list functor. This library collects such non-standard "list" and "non-empty list" monads.
 category:       List, Monads
