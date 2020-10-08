@@ -693,7 +693,7 @@ foldHeadTails :: (HeadTailTail a) => (g -> a) -> HeadTails g -> a
 foldHeadTails f (HeadTails (x :| [])) = hd (f x)
 foldHeadTails f (HeadTails (x :| (y : ys))) =
   htt (f x) (f y) (foldHeadTails f $ HeadTails $ y :| ys)
-  
+
 -- The following two are needed for examples in the docs:
 
 instance IsList (HeadTails a) where

@@ -218,7 +218,7 @@ isSingle _   = False
 -- binary and one nullary operation, that is, each is a subclass of
 -- "PointedMagma" with additional laws. (So does the usual list monad,
 -- where the subclass is monoid.) It is not known if there exists a
--- list monad that have a finite presentation but necessarily with a
+-- list monad that has a finite presentation but necessarily with a
 -- different set of operations (there are such monads on non-empty
 -- lists, for example, 'Control.Monad.List.NonEmpty.Exotic.HeadTails'
 -- and 'Control.Monad.List.NonEmpty.Exotic.HeadsTail').
