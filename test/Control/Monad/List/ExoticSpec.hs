@@ -26,26 +26,18 @@ deriving instance (Arbitrary a) => Arbitrary (GlobalFailure a)
 deriving instance (Arbitrary a) => Arbitrary (MazeWalk a)
 deriving instance (Arbitrary a) => Arbitrary (DiscreteHybrid a)
 deriving instance (Arbitrary a) => Arbitrary (ListUnfold a)
-deriving instance (Arbitrary a) => Arbitrary (Stutter 0 a)
-deriving instance (Arbitrary a) => Arbitrary (Stutter 1 a)
-deriving instance (Arbitrary a) => Arbitrary (Stutter 5 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterKeeper 0 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterKeeper 1 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterKeeper 5 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterStutter 0 0 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterStutter 0 1 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterStutter 1 0 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterStutter 1 1 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterStutter 5 3 a)
-deriving instance (Arbitrary a) => Arbitrary (StutterStutter 3 5 a)
+deriving instance (Arbitrary a) => Arbitrary (Stutter m a)
+deriving instance (Arbitrary a) => Arbitrary (StutterKeeper m a)
+deriving instance (Arbitrary a) => Arbitrary (StutterStutter m n a)
 deriving instance (Arbitrary a) => Arbitrary (Mini a)
 deriving instance (Arbitrary a) => Arbitrary (Odd a)
-deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 0 0 a)
-deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 0 1 a)
-deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 1 0 a)
-deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 1 1 a)
-deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 5 3 a)
-deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper 3 5 a)
+deriving instance (Arbitrary a) => Arbitrary (AtLeast n a)
+deriving instance (Arbitrary a) => Arbitrary (NumericalMonoidMonad xs a)
+deriving instance (Arbitrary a) => Arbitrary (ContinuumOfMonads s a)
+deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper m n a)
+
+assocTests :: Int
+assocTests = 250
 
 testMonad :: forall m. (Eq (Item (m Int)), ListMonad m, Arbitrary (m Int),
                         Arbitrary (m (m (m Int))),
@@ -58,7 +50,7 @@ testMonad name _ =
       \xs -> toList (join (fmap return xs)) == toList ((xs :: m Int)) 
     it "right unit:" $ property $
       \xs -> toList (join (return xs))      == toList ((xs :: m Int))
-    modifyMaxSuccess (const 150) $ it "associativity:" $ property $
+    modifyMaxSuccess (const assocTests) $ it "associativity:" $ property $
       \xsss -> toList (join (join xsss))    == toList (join (fmap join xsss) :: m Int)
       
 spec :: Spec
@@ -115,20 +107,52 @@ spec = do
       $ property $ \(x :: ListUnfold Int)     -> eps <> x       ==  eps
     it                                          "(x <> y) <> z  ==  eps"
       $ property $ \(x :: ListUnfold Int) y z -> (x <> y) <> z  ==  eps
+      
   testMonad  "Stutter 1"          (Proxy :: Proxy (Stutter 0))
   testMonad  "Stutter 2"          (Proxy :: Proxy (Stutter 1))
   testMonad  "Stutter 5"          (Proxy :: Proxy (Stutter 5))
+
+  testMonad  "ContinuumOfMonads Primes" (Proxy :: Proxy (ContinuumOfMonads Primes))
+  testMonad  "ContinuumOfMonads Fib" (Proxy :: Proxy (ContinuumOfMonads Fib))
+  
   testMonad  "StutterKeeper 0"    (Proxy :: Proxy (StutterKeeper 0))
   testMonad  "StutterKeeper 1"    (Proxy :: Proxy (StutterKeeper 1))
+  testMonad  "StutterKeeper 2"    (Proxy :: Proxy (StutterKeeper 2))
+  testMonad  "StutterKeeper 3"    (Proxy :: Proxy (StutterKeeper 3))
+  testMonad  "StutterKeeper 4"    (Proxy :: Proxy (StutterKeeper 4))
   testMonad  "StutterKeeper 5"    (Proxy :: Proxy (StutterKeeper 5))
+  testMonad  "StutterKeeper 10"   (Proxy :: Proxy (StutterKeeper 10))
+  
   testMonad  "StutterStutter 0 0" (Proxy :: Proxy (StutterStutter 0 0))
   testMonad  "StutterStutter 0 1" (Proxy :: Proxy (StutterStutter 0 1))
   testMonad  "StutterStutter 1 0" (Proxy :: Proxy (StutterStutter 1 0))
   testMonad  "StutterStutter 1 1" (Proxy :: Proxy (StutterStutter 1 1))
   testMonad  "StutterStutter 5 3" (Proxy :: Proxy (StutterStutter 5 3))
   testMonad  "StutterStutter 3 5" (Proxy :: Proxy (StutterStutter 3 5))
+  
   testMonad  "Mini"               (Proxy :: Proxy Mini)
   testMonad  "Odd"                (Proxy :: Proxy Odd)
+  
+  testMonad  "AtLeast 10"         (Proxy :: Proxy (AtLeast 10))
+  testMonad  "AtLeast 4"          (Proxy :: Proxy (AtLeast 4))
+  testMonad  "AtLeast 3"          (Proxy :: Proxy (AtLeast 3))
+  testMonad  "AtLeast 2"          (Proxy :: Proxy (AtLeast 2))
+  testMonad  "AtLeast 1"          (Proxy :: Proxy (AtLeast 1))
+  testMonad  "AtLeast 0"          (Proxy :: Proxy (AtLeast 0))
+
+  testMonad  "NumericalMonoidMonad []" (Proxy :: Proxy (NumericalMonoidMonad '[]))
+  testMonad  "NumericalMonoidMonad [0]" (Proxy :: Proxy (NumericalMonoidMonad '[0]))
+  testMonad  "NumericalMonoidMonad [1]" (Proxy :: Proxy (NumericalMonoidMonad '[1]))
+  testMonad  "NumericalMonoidMonad [0,1]" (Proxy :: Proxy (NumericalMonoidMonad '[0,1]))
+  testMonad  "NumericalMonoidMonad [2,7,20,22]" (Proxy :: Proxy (NumericalMonoidMonad '[2,7,20,22]))
+  testMonad  "NumericalMonoidMonad [2]" (Proxy :: Proxy (NumericalMonoidMonad '[2]))
+  testMonad  "NumericalMonoidMonad [3,4,5]" (Proxy :: Proxy (NumericalMonoidMonad '[3,4,5]))
+  testMonad  "NumericalMonoidMonad [3,7]" (Proxy :: Proxy (NumericalMonoidMonad '[3,7]))
+  testMonad  "NumericalMonoidMonad [2,4,11]" (Proxy :: Proxy (NumericalMonoidMonad '[2,4,11]))
+
+  testMonad  "ContinuumOfMonads Primes" (Proxy :: Proxy (ContinuumOfMonads Primes))
+  testMonad  "ContinuumOfMonads Fib" (Proxy :: Proxy (ContinuumOfMonads Fib))
+
   testMonad  "ShortStutterKeeper 0 0" (Proxy :: Proxy (ShortStutterKeeper 0 0))
   testMonad  "ShortStutterKeeper 0 1" (Proxy :: Proxy (ShortStutterKeeper 0 1))
   testMonad  "ShortStutterKeeper 0 1" (Proxy :: Proxy (ShortStutterKeeper 1 0))

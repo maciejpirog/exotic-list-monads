@@ -14,6 +14,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 
+{-# LANGUAGE AllowAmbiguousTypes #-} -- these are needed for numerical monoids
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeApplications #-}
+
 -- The following two extensions are used only in examples:
 
 -- {-# LANGUAGE OverloadedLists #-}
@@ -31,8 +35,13 @@
 -- The usual list monad is only one of infinitely many ways to turn
 -- the List functor into a monad. This module collects a number of
 -- such exotic "list monads". Most of them have been introduced in the
--- paper [Degrading Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf)
+-- papers:
+-- 
+-- * [Degrading Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf)
 -- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (PPDP 2020).
+-- 
+-- * [Counting Monads on Lists](https://cla.tcs.uj.edu.pl/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf)
+-- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (CLA 2023).
 --
 -- __Notes:__
 --
@@ -116,17 +125,40 @@ module Control.Monad.List.Exotic
   , StutterStutterAlgebra
   , StutterStutter(..)
 
-  -- * Other monads
+  -- * Monads from numerical monoids
 
-  -- $no_finite_presentation
+  -- $numerical_monoids
   
   -- ** The Mini monad
 
   , Mini(..)
   
-  -- ** The Odd monad (?)
+  -- ** The Odd monad
 
   , Odd(..)
+
+  -- ** The At Least monad
+
+  , AtLeast(..)
+
+  -- ** The Numerical Monoid monad
+
+  , NumericalMonoidGenerators(..)
+  , NumericalMonoidMonad(..)
+  
+  -- * Other list monads
+
+  -- ** The Continuum-of-Monads monad
+
+  -- $continuum-monads
+
+  , SetOfNats(..)
+
+  -- $example-sets
+
+  , Primes
+  , Fib
+  , ContinuumOfMonads(..)
   
   -- ** The Short Stutter-Keeper monad (?)
 
@@ -685,14 +717,6 @@ instance (KnownNat n) => StutterAlgebra n (Stutter n a)
 
 instance (KnownNat n) => FreeRBPM (Stutter n) (StutterAlgebra n)
 
--- $no_finite_presentation
---
--- While all list monads have presentations in terms of operations and
--- equations, some require infinitely many operations. This section
--- contains monads that are either known to require infinitely many
--- operations, or those for which no finite presentation is known, but
--- we don't know for sure that such a presentation doesn't exist.
-
 ------------------------------
 -- The Stutter-Keeper monad --
 ------------------------------
@@ -853,19 +877,44 @@ instance (KnownNat n, KnownNat m)
 instance (KnownNat n, KnownNat m)
   => FreeRBPM (StutterStutter n m) (StutterStutterAlgebra n m)
 
+-- $numerical_monoids
+-- 
+-- A /numerical monoid/ is a subset of the set of natural numbers that
+-- contains 0 and is closed under addition. That is,
+-- \(M \subseteq \mathbb N\)
+-- is a numerical monoid if
+--
+--  * \(0 \in M\),
+--
+--  * if \(x,y \in M\), then \(x+y \in M\).
+--
+-- Representing a numerical monoid \(M\) using its characteristic
+-- function @m :: Int -> Bool@ (revealing if a given number belongs to
+-- \(M\)), we can define a monad as follows:
+--
+-- @
+-- join xss | isSingle xss || all isSingle xss                         = concat xss
+--          | null xss || any null xss                                 = []
+--          | m (length xss - 1) && all (\\xs -> m $ length xs - 1) xss = concat xss
+--          | otherwise                                                = []
+-- @
+--
+-- Below, we first show a couple of concrete examples of monads
+-- arising from particular numerical monoids, and then the general
+-- version via a set of generators.
+
 --------------------
 -- The Mini monad --
 --------------------
 
--- | The Mini monad is the minimal list monad, meaning that its join
--- fails (= results in an empty list) for all values except the ones
--- that appear in the unit laws (i.e., a singleton or a list of
--- singletons):
+-- | The Mini monad is, in a sense, a minimal list monad, meaning that
+-- its join fails (= results in an empty list) for all values except
+-- the ones that appear in the unit laws (i.e., a singleton or a list
+-- of singletons):
 --
 -- @
--- join xss | isSingle xss     = concat xss
---          | all isSingle xss = concat xss
---          | otherwise        = []
+-- join xss | isSingle xss || all isSingle xss = concat xss
+--          | otherwise                        = []
 -- @
 --
 -- For example:
@@ -874,6 +923,10 @@ instance (KnownNat n, KnownNat m)
 -- Mini "HelloThere"
 -- >>> join ["Hello", "There"] :: Mini Char
 -- Mini ""
+-- >>> join ["H", "T"] :: Mini Char
+-- Mini "HT"
+--
+-- This monad arises from the numerical monoid \(\{0\}\).
 --
 -- It does not arise from a subclass of 'PointedMagma' (or any
 -- algebraic theory with a finite number of operations for that 
@@ -891,10 +944,8 @@ instance Monad Mini where
   return x = Mini [x]
   Mini xs >>= f = Mini $ join $ map (unMini . f) xs 
    where
-    join xss | isSingle xss || all isSingle xss
-             = concat xss
-             | otherwise
-             = []
+    join xss | isSingle xss || all isSingle xss = concat xss
+             | otherwise                        = []
 
 instance IsList (Mini a) where
   type Item (Mini a) = a
@@ -913,11 +964,10 @@ instance ListMonad Mini
 -- laws), it returns an empty list.
 --
 -- @
--- join xss | isSingle xss               = concat xss
---          | all isSingle xss           = concat xss
+-- join xss | isSingle xss || all isSingle xss  = concat xss
 --          | odd (length xss)
---             && all (odd . length) xss = concat xss 
---          | otherwise                  = []
+--             && all (odd . length) xss        = concat xss 
+--          | otherwise                         = []
 -- @
 --
 -- For example:
@@ -929,8 +979,11 @@ instance ListMonad Mini
 -- >>> join ["Roy", "Kelton", "Orbison"] :: Odd Char
 -- Odd ""
 --
+-- It arises from the numerical monoid \(\{0,2,4,6,\ldots\}\). -- Note that the sum of even numbers is always even, which cannot be said of odd numbers!
+--
+--
 -- At the moment, it is unclear whether it comes from a finite
--- algebraic theory (or that it is indeed a monad).
+-- algebraic theory.
 newtype Odd a = Odd { unOdd :: [a] }
  deriving (Functor, Show, Eq)
 
@@ -957,6 +1010,220 @@ instance IsList (Odd a) where
   fromList = Odd
 
 instance ListMonad Odd
+
+------------------------
+-- The At Least monad --
+------------------------
+
+-- | The join of the @AtLeast n@ monad is a concat of the inner lists
+-- provided there are at least @n@ inner lists and all the inner lists
+-- are of length at least @n@ or 1.
+--
+-- The join can thus be defined as follows (omitting the conversion of
+-- the type-level nats to run-time values):
+--
+-- @
+-- join xss | isSingle xss || all isSingle xss  = concat xss
+--          | otherwise = let ok :: forall x. [x] -> Bool
+--                            ok xs = length xs >= n || length xs == 1
+--                        in if ok xss && all ok xss
+--                             then concat xss
+--                             else []
+-- @
+--
+-- For example:
+--
+-- >>> join ["Strawberry", "Fields", "Forever"] :: AtLeast 3 Char
+-- AtLeast "StrawberryFieldsForever"
+-- >>> join ["All", "You", "Need", "Is", "Love"] :: AtLeast 3 Char
+-- AtLeast []
+-- >>> join ["I", "Want", "You"] :: AtLeast 3 Char
+-- AtLeast "IWantYou"
+-- >>> join ["I", "Am", "The", "Walrus"] :: AtLeast 3 Char
+-- AtLeast []
+--
+-- The monad @AtLeast n@ arises from the numerical monoid \(\{0, n-1, n, n+1, n+2,\ldots\}\).
+newtype AtLeast (n :: Nat) a = AtLeast { unAtLeast :: [a] }
+ deriving (Functor, Show, Eq)
+
+deriving instance (KnownNat n) => IsString (AtLeast n Char)
+
+instance (KnownNat n) => Applicative (AtLeast n) where
+  pure  = return
+  (<*>) = ap
+
+instance (KnownNat n) => Monad (AtLeast n) where
+  return x = AtLeast [x]
+  AtLeast xs >>= f = AtLeast $ join $ map (unAtLeast . f) xs 
+   where
+    join xss | isSingle xss     = concat xss
+             | all isSingle xss = concat xss
+             | otherwise        = let n = fromIntegral $ natVal (Proxy :: Proxy n)
+                                      ok :: forall x. [x] -> Bool
+                                      ok xs = length xs >= n || length xs == 1
+                                  in if ok xss && all ok xss
+                                       then concat xss
+                                       else []
+
+instance (KnownNat n) => IsList (AtLeast n a) where
+  type Item (AtLeast n a) = a
+  toList   = unAtLeast
+  fromList = AtLeast
+
+instance (KnownNat n) => ListMonad (AtLeast n)
+
+--------------------------------
+-- The Numerical Monoid monad --
+--------------------------------
+
+-- | An interesting property of numerical monoids is that they are
+-- always finitely generated. This means that every numerical monoid
+-- can be constructed by starting out with a finite set of nautral
+-- numbers and closing it under addition. For example, the set
+-- \(\{0,2,4,6,\ldots\}\) is generated by \(\{2\}\), because every
+-- even number is of the form \(2k\) for some \(k\).
+--
+-- The class @'NumericalMonoidGenerators'@ represents a set of
+-- generators given as a type-level list of nats.
+class NumericalMonoidGenerators (ns :: [Nat]) where
+  -- | Check if a given number is in the numerical monoid generatted
+  -- by @ns@. It is the characteristic function of the generated
+  -- numerical monoid.
+  isInNumericalMonoid :: Int -> Bool
+
+instance NumericalMonoidGenerators '[] where
+  isInNumericalMonoid = (== 0)
+
+instance (KnownNat g, NumericalMonoidGenerators gs) => NumericalMonoidGenerators (g ': gs) where
+  isInNumericalMonoid x
+     | x < 0     = False
+     | otherwise =  isInNumericalMonoid @gs x
+                 || x >= g && g > 0 && isInNumericalMonoid @(g ': gs) (x - g)
+   where
+    g = fromIntegral $ natVal (Proxy :: Proxy g)
+
+-- | The monad generated by the numerical monoid generated by a set of generators @ns@.
+--
+-- @
+-- join xss | null xss || any null xss                                     = []
+--          | isInNumericalMonoid \@ns (length xss - 1)
+--             && all (\\xs -> isInNumericalMonoid \@ns (length xs - 1)) xss = concat xss
+--          | otherwise                                                    = []
+-- @
+--
+-- In particular:
+--
+-- * @'Mini'@ is @NumericalMonoidMonad '[]@,
+--
+-- * @'Odd'@ is @NumericalMonoidMonad '[2]@,
+--
+-- * @'AtLeast' n@ is @NumericalMonoidMonad '[n-1, n, n+1, ..., 2n-3]@.
+newtype NumericalMonoidMonad (ns :: [Nat]) a = NumericalMonoidMonad { unNumericalMonoidMonad :: [a] }
+ deriving (Functor, Show, Eq)
+
+deriving instance (NumericalMonoidGenerators ns) => IsString (NumericalMonoidMonad ns Char)
+
+instance (NumericalMonoidGenerators ns) => Applicative (NumericalMonoidMonad ns) where
+  pure  = return
+  (<*>) = ap
+
+instance (NumericalMonoidGenerators ns) => Monad (NumericalMonoidMonad ns) where
+  return x = NumericalMonoidMonad [x]
+  NumericalMonoidMonad xs >>= f = NumericalMonoidMonad $ join $ map (unNumericalMonoidMonad . f) xs 
+   where
+    join xss | isSingle xss || all isSingle xss                          = concat xss
+             | null xss || any null xss                                  = []
+             | isInNumericalMonoid @ns (length xss - 1)
+             && all (\xs -> isInNumericalMonoid @ns (length xs - 1)) xss = concat xss
+             | otherwise                                                 = []
+
+instance (NumericalMonoidGenerators ns) => IsList (NumericalMonoidMonad ns a) where
+  type Item (NumericalMonoidMonad ns a) = a
+  toList   = unNumericalMonoidMonad
+  fromList = NumericalMonoidMonad
+
+instance (NumericalMonoidGenerators ns) => ListMonad (NumericalMonoidMonad ns)
+
+-----------------------------------
+-- The Continuum-of-Monads monad --
+-----------------------------------
+
+-- $continuum-monads
+--
+-- The "Continuum of Monads" monad construction was introduced in
+-- [this
+-- paper](https://cla.tcs.uj.edu.pl/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf)
+-- to show that the set of list monads is a
+-- [continuum](https://en.wikipedia.org/wiki/Cardinality_of_the_continuum)
+-- (that is, that there are as many list monads in the catefgory of
+-- sets as there are real numbers, and more than there are natural
+-- numbers).
+
+-- | The @SetOfNats@ class defines a subset of the set of natural
+-- numbers (from which we are actually interested in odd numbers
+-- only).
+class SetOfNats (a :: *) where
+  -- | The characteristic function of the defined set.
+  elemOf :: Int -> Bool
+
+-- $example-sets
+--
+-- Here come two examples of sets of natural numbers: the set of
+-- primes and Fibonacci numbers respectively:
+
+primes :: [Int]
+primes = sieve [2..] where sieve ps = head ps : sieve [x | x <- tail ps, x `mod` head ps > 0]
+
+-- | The set of prime numbers.
+data Primes; instance SetOfNats Primes where elemOf n = n `elem` takeWhile (<= n) primes
+
+fib :: [Int]
+fib = 0 : 1 : zipWith (+) fib (tail fib)
+
+-- | The set of Fibonacci numbers.
+data Fib; instance SetOfNats Fib where elemOf n = n `elem` takeWhile (<= n) fib
+
+-- | The @'ContinuumOfMonads'@ monad is parameterised by a set of
+-- natural numbers (@'SetOfNats'@). This means that the user can write a
+-- monad as follows:
+--
+-- >>> :k ContinuumOfMonads Primes
+-- ContinuumOfMonads Primes :: * -> *
+--
+-- One can define different sets by instantiating the @'SetOfNats'@ class.
+--
+-- The @join@ of @ContinuumOfMonads s@ is defined as follows:
+--
+-- @
+-- join xss       | isSingle xss    || all isSingle xss      = concat xss
+--                | null xss        || any null xss          = []
+-- join [[x], xs] | odd (length xs) && elemOf @s (length xs) = x : xs
+-- join _                                                    = []
+-- @
+newtype ContinuumOfMonads s a = ContinuumOfMonads { unContinuumOfMonads :: [a] }
+ deriving (Functor, Show, Eq)
+
+deriving instance IsString (ContinuumOfMonads s Char)
+
+instance (SetOfNats s) => Applicative (ContinuumOfMonads s) where
+  pure  = return
+  (<*>) = ap
+
+instance (SetOfNats s) => Monad (ContinuumOfMonads s) where
+  return x = ContinuumOfMonads [x]
+  ContinuumOfMonads xs >>= f = ContinuumOfMonads $ join $ map (unContinuumOfMonads . f) xs 
+   where
+    join xss | isSingle xss || all isSingle xss               = concat xss
+             | null xss || any null xss                       = []
+    join [[x], xs] | odd (length xs) && elemOf @s (length xs) = x : xs
+    join _                                                    = []
+
+instance IsList (ContinuumOfMonads s a) where
+  type Item (ContinuumOfMonads s a) = a
+  toList   = unContinuumOfMonads
+  fromList = ContinuumOfMonads
+
+instance (SetOfNats s) => ListMonad (ContinuumOfMonads s)
 
 ------------------------------------
 -- The Short Stutter-Keeper monad --
@@ -999,13 +1266,15 @@ instance (KnownNat n, KnownNat p) => Applicative (ShortStutterKeeper n p) where
 instance (KnownNat n, KnownNat p) => Monad (ShortStutterKeeper n p) where
   return x = ShortStutterKeeper [x]
   ShortStutterKeeper xs >>= f = ShortStutterKeeper $ join $ map (unShortStutterKeeper . f) xs
-   where join xss | isSingle xss = concat xss
-                  | all isSingle xss = concat xss
-                  | otherwise
-                  = let p = fromIntegral $ natVal (Proxy :: Proxy p)
-                    in  take (p + 2) $ toList
-                        ((Control.Monad.join $ StutterKeeper $ fmap StutterKeeper xss)
-                          :: StutterKeeper n _)
+   where
+    join :: forall x. [[x]] -> [x]
+    join xss | isSingle xss = concat xss
+             | all isSingle xss = concat xss
+             | otherwise =
+                  let p = fromIntegral $ natVal (Proxy :: Proxy p)
+                  in  take (p + 2) $ toList
+                      ((Control.Monad.join $ StutterKeeper $ fmap StutterKeeper xss)
+                        :: StutterKeeper n x)
 
 instance (KnownNat n, KnownNat p) => IsList (ShortStutterKeeper n p a) where
   type Item (ShortStutterKeeper n p a) = a

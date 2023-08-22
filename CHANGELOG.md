@@ -1,5 +1,15 @@
 # exotic-list-monad changelog
 
+## v1.1.0
+
+- Added the NumericalMonoidMonad monad
+
+- Fixed the documentation to make Mini and Odd instances of NumericalMonoidMonad
+
+- Add AtLeast as another instance of NumericalMonoidMonad
+
+- Add the ContinuumOfMonads construction
+
 ## v1.0.1
 
 - Fixes in documentation
