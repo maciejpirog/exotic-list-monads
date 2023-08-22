@@ -1,6 +1,6 @@
 # exotic-list-monads
 
-[![Hackage](https://img.shields.io/hackage/v/exotic-list-monads.svg)](https://hackage.haskell.org/package/exotic-list-monads) [![Build Status](https://api.travis-ci.com/maciejpirog/exotic-list-monads.png?branch=master)](http://travis-ci.com/maciejpirog/exotic-list-monads)
+[![Hackage](https://img.shields.io/hackage/v/exotic-list-monads.svg)](https://hackage.haskell.org/package/exotic-list-monads)
 
 A Haskell library with non-standard monads on lists and non-empty lists
 
