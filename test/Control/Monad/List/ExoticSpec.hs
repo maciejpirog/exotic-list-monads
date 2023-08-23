@@ -112,9 +112,6 @@ spec = do
   testMonad  "Stutter 2"          (Proxy :: Proxy (Stutter 1))
   testMonad  "Stutter 5"          (Proxy :: Proxy (Stutter 5))
 
-  testMonad  "ContinuumOfMonads Primes" (Proxy :: Proxy (ContinuumOfMonads Primes))
-  testMonad  "ContinuumOfMonads Fib" (Proxy :: Proxy (ContinuumOfMonads Fib))
-  
   testMonad  "StutterKeeper 0"    (Proxy :: Proxy (StutterKeeper 0))
   testMonad  "StutterKeeper 1"    (Proxy :: Proxy (StutterKeeper 1))
   testMonad  "StutterKeeper 2"    (Proxy :: Proxy (StutterKeeper 2))
@@ -150,8 +147,8 @@ spec = do
   testMonad  "NumericalMonoidMonad [3,7]" (Proxy :: Proxy (NumericalMonoidMonad '[3,7]))
   testMonad  "NumericalMonoidMonad [2,4,11]" (Proxy :: Proxy (NumericalMonoidMonad '[2,4,11]))
 
-  testMonad  "ContinuumOfMonads Primes" (Proxy :: Proxy (ContinuumOfMonads Primes))
-  testMonad  "ContinuumOfMonads Fib" (Proxy :: Proxy (ContinuumOfMonads Fib))
+  testMonad  "ContinuumOfMonads Primes" (Proxy :: Proxy (ContinuumOfMonads "Primes"))
+  testMonad  "ContinuumOfMonads Fib" (Proxy :: Proxy (ContinuumOfMonads "Fib"))
 
   testMonad  "ShortStutterKeeper 0 0" (Proxy :: Proxy (ShortStutterKeeper 0 0))
   testMonad  "ShortStutterKeeper 0 1" (Proxy :: Proxy (ShortStutterKeeper 0 1))

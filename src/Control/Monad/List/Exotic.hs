@@ -153,11 +153,6 @@ module Control.Monad.List.Exotic
   -- $continuum-monads
 
   , SetOfNats(..)
-
-  -- $example-sets
-
-  , Primes
-  , Fib
   , ContinuumOfMonads(..)
   
   -- ** The Short Stutter-Keeper monad (?)
@@ -1155,33 +1150,41 @@ instance (NumericalMonoidGenerators ns) => ListMonad (NumericalMonoidMonad ns)
 -- paper](https://cla.tcs.uj.edu.pl/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf)
 -- to show that the set of list monads is a
 -- [continuum](https://en.wikipedia.org/wiki/Cardinality_of_the_continuum)
--- (that is, that there are as many list monads in the catefgory of
+-- (that is, that there are as many list monads in the category of
 -- sets as there are real numbers, and more than there are natural
 -- numbers).
+--
+-- We define a family of monads @'ContinuumOfMonads'@, which is
+-- parameterised by a subset of the set of natural numbers
+-- (@'SetOfNats'@).
 
 -- | The @SetOfNats@ class defines a subset of the set of natural
 -- numbers (from which we are actually interested in odd numbers
 -- only).
-class SetOfNats (a :: *) where
+--
+-- For example:
+--
+-- >>> filter (elemOf @"Primes") [0..100]
+-- [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
+-- >>> filter (elemOf @"Fib") [0..100]
+-- [0,1,2,3,5,8,13,21,34,55,89]
+class SetOfNats (a :: Symbol) where
   -- | The characteristic function of the defined set.
   elemOf :: Int -> Bool
 
--- $example-sets
---
--- Here come two examples of sets of natural numbers: the set of
--- primes and Fibonacci numbers respectively:
+-- Example sets:
 
 primes :: [Int]
 primes = sieve [2..] where sieve ps = head ps : sieve [x | x <- tail ps, x `mod` head ps > 0]
 
 -- | The set of prime numbers.
-data Primes; instance SetOfNats Primes where elemOf n = n `elem` takeWhile (<= n) primes
+instance SetOfNats "Primes" where elemOf n = n `elem` takeWhile (<= n) primes
 
 fib :: [Int]
 fib = 0 : 1 : zipWith (+) fib (tail fib)
 
 -- | The set of Fibonacci numbers.
-data Fib; instance SetOfNats Fib where elemOf n = n `elem` takeWhile (<= n) fib
+instance SetOfNats "Fib" where elemOf n = n `elem` takeWhile (<= n) fib
 
 -- | The @'ContinuumOfMonads'@ monad is parameterised by a set of
 -- natural numbers (@'SetOfNats'@). This means that the user can write a
@@ -1200,7 +1203,7 @@ data Fib; instance SetOfNats Fib where elemOf n = n `elem` takeWhile (<= n) fib
 -- join [[x], xs] | odd (length xs) && elemOf @s (length xs) = x : xs
 -- join _                                                    = []
 -- @
-newtype ContinuumOfMonads s a = ContinuumOfMonads { unContinuumOfMonads :: [a] }
+newtype ContinuumOfMonads (s :: Symbol) a = ContinuumOfMonads { unContinuumOfMonads :: [a] }
  deriving (Functor, Show, Eq)
 
 deriving instance IsString (ContinuumOfMonads s Char)
