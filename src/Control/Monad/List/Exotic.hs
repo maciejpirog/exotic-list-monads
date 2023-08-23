@@ -1116,7 +1116,7 @@ instance (KnownNat g, NumericalMonoidGenerators gs) => NumericalMonoidGenerators
 newtype NumericalMonoidMonad (ns :: [Nat]) a = NumericalMonoidMonad { unNumericalMonoidMonad :: [a] }
  deriving (Functor, Show, Eq)
 
-deriving instance (NumericalMonoidGenerators ns) => IsString (NumericalMonoidMonad ns Char)
+deriving instance IsString (NumericalMonoidMonad ns Char)
 
 instance (NumericalMonoidGenerators ns) => Applicative (NumericalMonoidMonad ns) where
   pure  = return
@@ -1132,7 +1132,7 @@ instance (NumericalMonoidGenerators ns) => Monad (NumericalMonoidMonad ns) where
              && all (\xs -> isInNumericalMonoid @ns (length xs - 1)) xss = concat xss
              | otherwise                                                 = []
 
-instance (NumericalMonoidGenerators ns) => IsList (NumericalMonoidMonad ns a) where
+instance IsList (NumericalMonoidMonad ns a) where
   type Item (NumericalMonoidMonad ns a) = a
   toList   = unNumericalMonoidMonad
   fromList = NumericalMonoidMonad
