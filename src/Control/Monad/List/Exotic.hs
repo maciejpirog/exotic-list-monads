@@ -894,6 +894,24 @@ instance (KnownNat n, KnownNat m)
 --          | otherwise                                                = []
 -- @
 --
+-- There is also some intuition behind the "@- 1@" part: For a set \(M \subseteq \mathbb N\),
+-- we define a set shifted by 1 as \(M^{+} =\{x \in \mathbb N \ |\ x-1 \in M\}\).
+-- Then, \(M\) is a numerical monoid if and only if:
+--
+-- * \(1 \in M^{+}\),
+--
+-- * if \(n, x_1, \ldots, x_n \in M^{+}\), then \(\displaystyle \sum_{i = 0}^n x_i \in M^{+}\).
+--
+-- (Do note that in the above \(n\) is in \(M^{+}\) as well!) This
+-- means that \(M^{+}\) is a set of "accepted lengths" of lists, while
+-- the condition above states that when we concatenate an accepted
+-- number of accepted lists, we still obtain an accepted list. This in
+-- turn can be used to prove the associativity law for monads: breadly
+-- speaking, @join :: [[[a]]] -> [a]@ is a concat only if all the
+-- lists on all levels are of accepted lengths (save for the unit
+-- laws), and joining (either the inner lists or the outer list first)
+-- will not produce a non-accepted list.
+--
 -- Below, we first show a couple of concrete examples of monads
 -- arising from particular numerical monoids, and then the general
 -- version via a set of generators.
@@ -1012,7 +1030,8 @@ instance ListMonad Odd
 
 -- | The join of the @AtLeast n@ monad is a concat of the inner lists
 -- provided there are at least @n@ inner lists and all the inner lists
--- are of length at least @n@ or 1.
+-- are of length at least @n@ or 1 (plus the cases required by the
+-- unit laws).
 --
 -- The join can thus be defined as follows (omitting the conversion of
 -- the type-level nats to run-time values):
@@ -1108,11 +1127,11 @@ instance (KnownNat g, NumericalMonoidGenerators gs) => NumericalMonoidGenerators
 --
 -- In particular:
 --
--- * @'Mini'@ is @NumericalMonoidMonad '[]@,
+-- * @'Mini'@ is equivalent to @NumericalMonoidMonad '[]@,
 --
--- * @'Odd'@ is @NumericalMonoidMonad '[2]@,
+-- * @'Odd'@ is equivalent to @NumericalMonoidMonad '[2]@,
 --
--- * @'AtLeast' n@ is @NumericalMonoidMonad '[n-1, n, n+1, ..., 2n-3]@.
+-- * @'AtLeast' n@ is equivalent to @NumericalMonoidMonad '[n-1, n, n+1, ..., 2n-3]@.
 newtype NumericalMonoidMonad (ns :: [Nat]) a = NumericalMonoidMonad { unNumericalMonoidMonad :: [a] }
  deriving (Functor, Show, Eq)
 
@@ -1160,7 +1179,9 @@ instance (NumericalMonoidGenerators ns) => ListMonad (NumericalMonoidMonad ns)
 
 -- | The @SetOfNats@ class defines a subset of the set of natural
 -- numbers (from which we are actually interested in odd numbers
--- only).
+-- only). We give two instances, @Primes@ and @Fib@, as examples, so
+-- if one wants to construct their own monad, they need to define an
+-- instance first (any total function gives a monad).
 --
 -- For example:
 --
