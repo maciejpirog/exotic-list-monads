@@ -34,6 +34,7 @@ deriving instance (Arbitrary a) => Arbitrary (Mini a)
 deriving instance (Arbitrary a) => Arbitrary (Odd a)
 deriving instance (Arbitrary a) => Arbitrary (AtLeast n a)
 deriving instance (Arbitrary a) => Arbitrary (NumericalMonoidMonad xs a)
+deriving instance (Arbitrary a) => Arbitrary (AtMost n a)
 deriving instance (Arbitrary a) => Arbitrary (ContinuumOfMonads s a)
 deriving instance (Arbitrary a) => Arbitrary (ShortStutterKeeper m n a)
 
@@ -177,6 +178,14 @@ spec = do
   testMonadIsomorphism "AtLeast 3" "NumericalMonoidMonad '[2,3]" (Proxy :: Proxy (AtLeast 3)) (Proxy :: Proxy (NumericalMonoidMonad '[2,3])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
   testMonadIsomorphism "AtLeast 4" "NumericalMonoidMonad '[3,4,5]" (Proxy :: Proxy (AtLeast 4)) (Proxy :: Proxy (NumericalMonoidMonad '[3,4,5])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
   testMonadIsomorphism "AtLeast 5" "NumericalMonoidMonad '[4,5,6,7]" (Proxy :: Proxy (AtLeast 5)) (Proxy :: Proxy (NumericalMonoidMonad '[4,5,6,7])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
+
+  testMonad  "AtMost 6"           (Proxy :: Proxy (AtMost 6))
+  testMonad  "AtMost 5"           (Proxy :: Proxy (AtMost 5))
+  testMonad  "AtMost 4"           (Proxy :: Proxy (AtMost 4))
+  testMonad  "AtMost 3"           (Proxy :: Proxy (AtMost 3))
+  testMonad  "AtMost 2"           (Proxy :: Proxy (AtMost 2))
+  testMonad  "AtMost 1"           (Proxy :: Proxy (AtMost 1))
+  testMonad  "AtMost 0"           (Proxy :: Proxy (AtMost 0))
   
   testMonad  "ContinuumOfMonads Primes" (Proxy :: Proxy (ContinuumOfMonads "Primes"))
   testMonad  "ContinuumOfMonads Fib" (Proxy :: Proxy (ContinuumOfMonads "Fib"))
@@ -187,4 +196,5 @@ spec = do
   testMonad  "ShortStutterKeeper 1 1" (Proxy :: Proxy (ShortStutterKeeper 1 1))
   testMonad  "ShortStutterKeeper 5 3" (Proxy :: Proxy (ShortStutterKeeper 5 3))
   testMonad  "ShortStutterKeeper 3 5" (Proxy :: Proxy (ShortStutterKeeper 3 5))
+
 

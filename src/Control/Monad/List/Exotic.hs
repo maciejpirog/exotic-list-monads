@@ -148,6 +148,10 @@ module Control.Monad.List.Exotic
   
   -- * Other list monads
 
+  -- ** The At Most monad
+
+  , AtMost(..)
+
   -- ** The Continuum-of-Monads monad
 
   -- $continuum-monads
@@ -1159,6 +1163,61 @@ instance IsList (NumericalMonoidMonad ns a) where
   fromList = NumericalMonoidMonad
 
 instance (NumericalMonoidGenerators ns) => ListMonad (NumericalMonoidMonad ns)
+
+-----------------------
+-- The At Most monad --
+-----------------------
+
+-- | The monad whose join is concat, but only if the total length of
+-- the list (that is, the sum of the lengths of the inner lists) is
+-- not greater than @n@ (except for the unit laws and the "global
+-- failure" property):
+--
+-- @
+-- join xss | isSingle xss || all isSingle xss = concat xss
+--          | any null xss                     = []
+--          | length (concat xss) <= n         = concat xss
+--          | otherwise                        = []
+-- @
+--
+-- For example:
+--
+-- >>> join ["El","vis"] :: AtMost 5 Char
+-- AtMost "Elvis"
+-- >>> join ["El","v","i"] :: AtMost 5 Char
+-- AtMost "Elvi"
+-- >>> join ["El","","vis"] :: AtMost 5 Char
+-- AtMost ""
+-- >>> join ["Presley"] :: AtMost 5 Char
+-- AtMost "Presley"
+-- >>> join ["P","r","e","s","l","e","y"] :: AtMost 5 Char
+-- AtMost "Presley"
+-- >>> join ["Pre","s","ley"] :: AtMost 5 Char
+-- AtMost ""
+newtype AtMost (n :: Nat) a = AtMost { unAtMost :: [a] }
+ deriving (Functor, Show, Eq)
+
+deriving instance (KnownNat n) => IsString (AtMost n Char)
+
+instance (KnownNat n) => Applicative (AtMost n) where
+  pure  = return
+  (<*>) = ap
+
+instance (KnownNat n) => Monad (AtMost n) where
+  return x = AtMost [x]
+  AtMost xs >>= f = AtMost $ join $ map (unAtMost . f) xs 
+   where
+    join xss | isSingle xss || all isSingle xss                                = concat xss
+             | any null xss                                                    = []
+             | length (concat xss) <= fromIntegral (natVal (Proxy :: Proxy n)) = concat xss
+             | otherwise                                                       = []
+
+instance (KnownNat n) => IsList (AtMost n a) where
+  type Item (AtMost n a) = a
+  toList   = unAtMost
+  fromList = AtMost
+
+instance (KnownNat n) => ListMonad (AtMost n)
 
 -----------------------------------
 -- The Continuum-of-Monads monad --
