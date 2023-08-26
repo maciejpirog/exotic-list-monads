@@ -76,6 +76,7 @@ testMonadIsomorphism name name' _ _ f g =
 
 spec :: Spec
 spec = do
+  
   describe "palindromize" $ do
     it "palindromizes a non-empty list" $
       palindromize "abcd" `shouldBe` "abcdcba"
@@ -172,6 +173,7 @@ spec = do
 
   testMonadIsomorphism "Mini" "NumericalMonoidMonad '[]" (Proxy :: Proxy Mini) (Proxy :: Proxy (NumericalMonoidMonad '[])) (NumericalMonoidMonad . unMini) (Mini . unNumericalMonoidMonad)
   testMonadIsomorphism "Odd" "NumericalMonoidMonad '[2]" (Proxy :: Proxy Odd) (Proxy :: Proxy (NumericalMonoidMonad '[2])) (NumericalMonoidMonad . unOdd) (Odd . unNumericalMonoidMonad)
+  testMonadIsomorphism "AtLeast 1" "NumericalMonoidMonad '[1]" (Proxy :: Proxy (AtLeast 3)) (Proxy :: Proxy (NumericalMonoidMonad '[2,3])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
   testMonadIsomorphism "AtLeast 3" "NumericalMonoidMonad '[2,3]" (Proxy :: Proxy (AtLeast 3)) (Proxy :: Proxy (NumericalMonoidMonad '[2,3])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
   testMonadIsomorphism "AtLeast 4" "NumericalMonoidMonad '[3,4,5]" (Proxy :: Proxy (AtLeast 4)) (Proxy :: Proxy (NumericalMonoidMonad '[3,4,5])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
   testMonadIsomorphism "AtLeast 5" "NumericalMonoidMonad '[4,5,6,7]" (Proxy :: Proxy (AtLeast 5)) (Proxy :: Proxy (NumericalMonoidMonad '[4,5,6,7])) (NumericalMonoidMonad . unAtLeast) (AtLeast . unNumericalMonoidMonad)
@@ -185,3 +187,4 @@ spec = do
   testMonad  "ShortStutterKeeper 1 1" (Proxy :: Proxy (ShortStutterKeeper 1 1))
   testMonad  "ShortStutterKeeper 5 3" (Proxy :: Proxy (ShortStutterKeeper 5 3))
   testMonad  "ShortStutterKeeper 3 5" (Proxy :: Proxy (ShortStutterKeeper 3 5))
+

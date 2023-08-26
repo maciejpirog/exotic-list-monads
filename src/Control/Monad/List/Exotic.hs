@@ -158,7 +158,7 @@ module Control.Monad.List.Exotic
   -- ** The Short Stutter-Keeper monad (?)
 
   , ShortStutterKeeper(..)
-  
+
   ) where
 
 import Prelude hiding ((<>))
@@ -1129,6 +1129,8 @@ instance (KnownNat g, NumericalMonoidGenerators gs) => NumericalMonoidGenerators
 --
 -- * @'Mini'@ is equivalent to @NumericalMonoidMonad '[]@,
 --
+-- * @'GlobalFailure'@ is equivalent to @NumericalMonoidMonad '[1]@,
+--
 -- * @'Odd'@ is equivalent to @NumericalMonoidMonad '[2]@,
 --
 -- * @'AtLeast' n@ is equivalent to @NumericalMonoidMonad '[n-1, n, n+1, ..., 2n-3]@.
@@ -1181,7 +1183,7 @@ instance (NumericalMonoidGenerators ns) => ListMonad (NumericalMonoidMonad ns)
 -- numbers (from which we are actually interested in odd numbers
 -- only). We give two instances, @Primes@ and @Fib@, as examples, so
 -- if one wants to construct their own monad, they need to define an
--- instance first (any total function gives a monad).
+-- instance first: any total @'elemOf'@ gives a monad.
 --
 -- For example:
 --
@@ -1208,13 +1210,7 @@ fib = 0 : 1 : zipWith (+) fib (tail fib)
 instance SetOfNats "Fib" where elemOf n = n `elem` takeWhile (<= n) fib
 
 -- | The @'ContinuumOfMonads'@ monad is parameterised by a set of
--- natural numbers (@'SetOfNats'@). This means that the user can write a
--- monad as follows:
---
--- >>> :k ContinuumOfMonads Primes
--- ContinuumOfMonads Primes :: * -> *
---
--- One can define different sets by instantiating the @'SetOfNats'@ class.
+-- natural numbers (a symbol that instantiates @'SetOfNats'@).
 --
 -- The @join@ of @ContinuumOfMonads s@ is defined as follows:
 --
@@ -1224,6 +1220,15 @@ instance SetOfNats "Fib" where elemOf n = n `elem` takeWhile (<= n) fib
 -- join [[x], xs] | odd (length xs) && elemOf @s (length xs) = x : xs
 -- join _                                                    = []
 -- @
+--
+-- For example:
+--
+-- >>> join [[0],[1,2,3]] :: ContinuumOfMonads "Primes" Int
+-- ContinuumOfMonads [0,1,2,3]
+-- >>> join [[0],[1,2,3,4]] :: ContinuumOfMonads "Primes" Int
+-- ContinuumOfMonads []
+-- >>> join [[0,1],[1,2,3,4,5]] :: ContinuumOfMonads "Primes" Int
+-- ContinuumOfMonads []
 newtype ContinuumOfMonads (s :: Symbol) a = ContinuumOfMonads { unContinuumOfMonads :: [a] }
  deriving (Functor, Show, Eq)
 
