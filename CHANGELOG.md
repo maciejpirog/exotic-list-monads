@@ -2,7 +2,9 @@
 
 ## v1.1.0
 
-- Added the NumericalMonoidMonad monad
+- Add the AtMost monad
+
+- Add the NumericalMonoidMonad monad
 
 - Fixed the documentation to make Mini and Odd instances of NumericalMonoidMonad
 

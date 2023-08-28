@@ -34,14 +34,7 @@
 --
 -- The usual list monad is only one of infinitely many ways to turn
 -- the List functor into a monad. This module collects a number of
--- such exotic "list monads". Most of them have been introduced in the
--- papers:
--- 
--- * [Degrading Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf)
--- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (PPDP 2020).
--- 
--- * [Counting Monads on Lists](https://cla.tcs.uj.edu.pl/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf)
--- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (CLA 2023).
+-- such non-standard "list" monads.
 --
 -- __Notes:__
 --
@@ -49,16 +42,16 @@
 -- monads (yet), though they were thoroughly tested with billions of
 -- QuickCheck tests.
 --
--- * Monads in this module are presented in terms of @join@ rather
--- than '>>='. In each case 'return' is singleton (it is not known if
+-- * Monads in this module are defined in terms of @join@ rather than
+-- '>>='. The 'return' of every monad is singleton (it is not known if
 -- there exists a monad on lists with a different return).
 --
 -- * For readability, code snippets in this documentation assume the
--- @OverloadedLists@ and @OverloadedStrings@ extensions, which allow
--- us to omit some @newtype@ constructors. Example definitions of
--- joins of monads always skip the @newtype@ constructors, that is,
--- assume '>>=' is always defined as follows for a particular local
--- @join@:
+-- @OverloadedLists@ and @OverloadedStrings@ language extensions,
+-- which make it possible to omit some @newtype@ constructors. Example
+-- definitions of joins of monads always skip the @newtype@
+-- constructors, that is, assume '>>=' is always defined as follows
+-- for a particular local @join@:
 --
 -- @
 -- m '>>=' f = 'wrap' $ join $ 'map' ('unwrap' . f) $ 'unwrap' m
@@ -70,6 +63,20 @@
 -- run-time performance. This is because the monads in this module
 -- don't seem to be of any practical use, they are more of a
 -- theoretical curiosity.
+--
+-- __References:__
+--
+-- Most of the monads defined in this module have been introduced in
+-- the following papers (although there are some new specimens as
+-- well):
+-- 
+-- * [Degrading Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf)
+-- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (PPDP 2020),
+-- 
+-- * [Counting Monads on Lists](https://cla.tcs.uj.edu.pl/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf)
+-- by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (CLA 2023),
+--
+-- * [Hybrid Programs](http://alfa.di.uminho.pt/~nevrenato/pdfs/thesis.pdf) by Renato Neves (PhD Thesis, 2018).
 module Control.Monad.List.Exotic
   (
   -- * List monads in general
@@ -519,9 +526,6 @@ safeLast xs = [last xs]
 -- DiscreteHybrid "ynOrbison"
 -- >>> join ["Roy", "", "Orbison"] :: DiscreteHybrid Char
 -- DiscreteHybrid "yOrbison"
---
--- Different versions of hybrid monads originate from Renato Neves's
--- [PhD thesis](http://alfa.di.uminho.pt/~nevrenato/pdfs/thesis.pdf).
 newtype DiscreteHybrid a = DiscreteHybrid { unDiscreteHybrid :: [a] }
  deriving (Functor, Show, Eq)
 
