@@ -319,11 +319,10 @@ newtype Keeper a = Keeper { unKeeper :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative Keeper where
-  pure  = return
-  (<*>) = ap
+  pure a = Keeper $ [a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad Keeper where
-  return a = Keeper $ [a]  -- OverloadedLists
   Keeper xs >>= f =
     Keeper $ join $ NonEmpty.map (unKeeper . f) xs
    where
@@ -380,11 +379,10 @@ newtype DiscreteHybridNE a =
  deriving (Functor, Show, Eq)
 
 instance Applicative DiscreteHybridNE where
-  pure  = return
-  (<*>) = ap
+  pure a = DiscreteHybridNE $ [a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad DiscreteHybridNE where
-  return a = DiscreteHybridNE $ [a]  -- OverloadedLists
   DiscreteHybridNE xs >>= f =
     DiscreteHybridNE $ join $ NonEmpty.map (unDiscreteHybridNE . f) xs
    where
@@ -439,11 +437,10 @@ newtype OpDiscreteHybridNE a =
  deriving (Functor, Show, Eq)
 
 instance Applicative OpDiscreteHybridNE where
-  pure  = return
-  (<*>) = ap
+  pure a = OpDiscreteHybridNE $ [a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad OpDiscreteHybridNE where
-  return a = OpDiscreteHybridNE $ [a]  -- OverloadedLists
   OpDiscreteHybridNE xs >>= f =
     OpDiscreteHybridNE $ join $ NonEmpty.map (unOpDiscreteHybridNE . f) xs
    where
@@ -499,11 +496,10 @@ newtype MazeWalkNE a =
  deriving (Functor, Show, Eq)
 
 instance Applicative MazeWalkNE where
-  pure  = return
-  (<*>) = ap
+  pure a = MazeWalkNE $ [a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad MazeWalkNE where
-  return a = MazeWalkNE $ [a]  -- OverloadedLists
   MazeWalkNE xs >>= f =
     MazeWalkNE $ join $ NonEmpty.map (unMazeWalkNE . f) xs
    where
@@ -559,11 +555,10 @@ newtype StutterNE (n :: Nat) a =
  deriving (Functor, Show, Eq)
 
 instance (KnownNat n) => Applicative (StutterNE n) where
-  pure  = return
-  (<*>) = ap
+  pure a = StutterNE $ [a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance (KnownNat n) => Monad (StutterNE n) where
-  return a = StutterNE $ [a]  -- OverloadedLists
   StutterNE xs >>= f =
     StutterNE $ join $ NonEmpty.map (unStutterNE . f) xs
    where
@@ -665,11 +660,10 @@ newtype HeadTails a = HeadTails { unHeadTails :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative HeadTails where
-  pure  = return
-  (<*>) = ap
+  pure a = HeadTails $ [a,a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad HeadTails where
-  return a = HeadTails $ [a,a]  -- OverloadedLists
   HeadTails xs >>= f = HeadTails $ join $ NonEmpty.map (unHeadTails . f) xs
    where
     join ((x :| _) :| xss) = x :| concatMap NonEmpty.tail xss
@@ -770,11 +764,10 @@ newtype HeadsTail a = HeadsTail { unHeadsTail :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative HeadsTail where
-  pure  = return
-  (<*>) = ap
+  pure a = HeadsTail $ [a,a]  -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad HeadsTail where
-  return a = HeadsTail $ [a,a]  -- OverloadedLists
   HeadsTail xs >>= f = HeadsTail $ join $ NonEmpty.map (unHeadsTail . f) xs
    where
     join xss@(splitSnoc -> (xss', xs@(_:|ys)))
@@ -840,11 +833,10 @@ newtype AlphaOmega a = AlphaOmega { unAlphaOmega :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative AlphaOmega where
-  pure  = return
-  (<*>) = ap
+  pure a = AlphaOmega [a]                           -- OverloadedLists
+  (<*>)  = ap
 
 instance Monad AlphaOmega where
-  return a = AlphaOmega [a]                          -- OverloadedLists
   AlphaOmega xs >>= f = AlphaOmega $ join $ NonEmpty.map (unAlphaOmega . f) xs
    where
     join xss | isSingle xss || nonEmptyAll isSingle xss
@@ -897,11 +889,10 @@ newtype DualNonEmptyMonad m a =
  deriving (Functor, Show, Eq)
 
 instance (NonEmptyMonad m) => Applicative (DualNonEmptyMonad m) where
-  pure  = return
-  (<*>) = ap
+  pure = DualNonEmptyMonad . liftNEFun NonEmpty.reverse . pure
+  (<*>)  = ap
 
 instance (NonEmptyMonad m) => Monad (DualNonEmptyMonad m) where
-  return = DualNonEmptyMonad . liftNEFun NonEmpty.reverse . return
   DualNonEmptyMonad m >>= f = DualNonEmptyMonad $ liftNEFun NonEmpty.reverse $
     liftNEFun NonEmpty.reverse m >>=
       liftNEFun NonEmpty.reverse . unDualNonEmptyMonad . f
@@ -934,11 +925,10 @@ data IdXList m a = IdXList { componentId :: a, componentM :: m a }
  deriving (Functor, Show, Eq)
 
 instance (ListMonad m) => Applicative (IdXList m) where
-  pure  = return
-  (<*>) = ap
+  pure x = IdXList x (pure x)
+  (<*>)  = ap
 
 instance (ListMonad m) => Monad (IdXList m) where
-  return x          = IdXList x (return x)
   IdXList x m >>= f = IdXList (componentId $ f x) (m >>= componentM . f)
 
 instance (ListMonad m) => IsNonEmpty (IdXList m a) where
@@ -1010,11 +1000,10 @@ newtype ShortFront m (p :: Nat) a = ShortFront { unShortFront :: m a }
  deriving (Functor, Show, Eq)
 
 instance (HasShortFront m, KnownNat p) => Applicative (ShortFront m p) where
-  pure  = return
+  pure  = ShortFront . return
   (<*>) = ap
 
 instance (HasShortFront m, KnownNat p) => Monad (ShortFront m p) where
-  return = ShortFront . return
   ShortFront m >>= f | isSingle (unwrap m)
                      || nonEmptyAll isSingle
                           (unwrap $ unwrap . unShortFront . f <$> m)
@@ -1075,14 +1064,13 @@ newtype ShortRear m (p :: Nat) a = ShortRear { unShortRear :: m a }
  deriving (Functor, Show, Eq)
 
 instance (HasShortRear m, KnownNat p) => Applicative (ShortRear m p) where
-  pure  = return
+  pure  = ShortRear . pure
   (<*>) = ap
 
 nonEmptyTakeRear :: Int -> NonEmpty a -> [a]
 nonEmptyTakeRear p = reverse . NonEmpty.take p . NonEmpty.reverse
 
 instance (HasShortRear m, KnownNat p) => Monad (ShortRear m p) where
-  return = ShortRear . return
   ShortRear m >>= f | isSingle (unwrap m)
                     || nonEmptyAll isSingle
                          (unwrap $ unwrap . unShortRear . f <$> m)

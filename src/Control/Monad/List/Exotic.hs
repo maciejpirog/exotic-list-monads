@@ -226,11 +226,10 @@ newtype DualListMonad m a = DualListMonad { unDualListMonad :: m a }
  deriving (Functor)
 
 instance (ListMonad m) => Applicative (DualListMonad m) where
-  pure  = return
+  pure  = DualListMonad . liftListFun reverse . pure
   (<*>) = ap
 
 instance (ListMonad m) => Monad (DualListMonad m) where
-  return = DualListMonad . liftListFun reverse . return
   DualListMonad m >>= f = DualListMonad $ liftListFun reverse $
     liftListFun reverse m >>= liftListFun reverse . unDualListMonad . f
 
@@ -365,11 +364,10 @@ newtype GlobalFailure a = GlobalFailure { unGlobalFailure :: [a] }
 deriving instance IsString (GlobalFailure Char)
 
 instance Applicative GlobalFailure where
-  pure  = return
-  (<*>) = ap
+  pure x = GlobalFailure [x]
+  (<*>)  = ap
 
 instance Monad GlobalFailure where
-  return x = GlobalFailure [x]
   GlobalFailure xs >>= f = GlobalFailure $ join $ map (unGlobalFailure . f) xs 
    where
     join xss | any null xss = []
@@ -460,11 +458,10 @@ newtype MazeWalk a = MazeWalk { unMazeWalk :: [a] }
 deriving instance IsString (MazeWalk Char)
 
 instance Applicative MazeWalk where
-  pure  = return
-  (<*>) = ap
+  pure x = MazeWalk [x]
+  (<*>)  = ap
 
 instance Monad MazeWalk where
-  return x = MazeWalk [x]
   MazeWalk xs >>= f = MazeWalk $ join $ map (unMazeWalk . f) xs 
    where
     join xss | null xss || any null xss
@@ -532,11 +529,10 @@ newtype DiscreteHybrid a = DiscreteHybrid { unDiscreteHybrid :: [a] }
 deriving instance IsString (DiscreteHybrid Char)
 
 instance Applicative DiscreteHybrid where
-  pure  = return
-  (<*>) = ap
+  pure x = DiscreteHybrid [x]
+  (<*>)  = ap
 
 instance Monad DiscreteHybrid where
-  return x = DiscreteHybrid [x]
   DiscreteHybrid xs >>= f = DiscreteHybrid $ join $ map (unDiscreteHybrid . f) xs 
    where
     join xss | null xss        = []
@@ -601,11 +597,10 @@ newtype ListUnfold a = ListUnfold { unListUnfold :: [a] }
 deriving instance IsString (ListUnfold Char)
 
 instance Applicative ListUnfold where
-  pure  = return
-  (<*>) = ap
+  pure x = ListUnfold [x]
+  (<*>)  = ap
 
 instance Monad ListUnfold where
-  return x = ListUnfold [x]
   ListUnfold xs >>= f = ListUnfold $ join $ map (unListUnfold . f) xs 
    where
     join xss | null xss || any null xss
@@ -690,11 +685,10 @@ newtype Stutter (n :: Nat) a = Stutter { unStutter :: [a] }
 deriving instance (KnownNat n) => IsString (Stutter n Char)
 
 instance (KnownNat n) => Applicative (Stutter n) where
-  pure  = return
-  (<*>) = ap
+  pure x = Stutter [x]
+  (<*>)  = ap
 
 instance (KnownNat n) => Monad (Stutter n) where
-  return x = Stutter [x]
   Stutter xs >>= f = Stutter $ join $ map (unStutter . f) xs
    where
     join xss | null xss
@@ -765,11 +759,10 @@ newtype StutterKeeper (n :: Nat) a = StutterKeeper { unStutterKeeper :: [a] }
 deriving instance (KnownNat n) => IsString (StutterKeeper n Char)
 
 instance (KnownNat n) => Applicative (StutterKeeper n) where
-  pure  = return
-  (<*>) = ap
+  pure x = StutterKeeper [x]
+  (<*>)  = ap
 
 instance (KnownNat n) => Monad (StutterKeeper n) where
-  return x = StutterKeeper [x]
   StutterKeeper xs >>= f = StutterKeeper $ join $ map (unStutterKeeper . f) xs
    where
     join xss | null xss
@@ -844,11 +837,10 @@ newtype StutterStutter (n :: Nat) (m :: Nat) a = StutterStutter { unStutterStutt
 deriving instance (KnownNat n, KnownNat m) => IsString (StutterStutter n m Char)
 
 instance (KnownNat n, KnownNat m) => Applicative (StutterStutter n m) where
-  pure  = return
-  (<*>) = ap
+  pure x = StutterStutter [x]
+  (<*>)  = ap
 
 instance (KnownNat n, KnownNat m) => Monad (StutterStutter n m) where
-  return x = StutterStutter [x]
   StutterStutter xs >>= f = StutterStutter $ join $ map (unStutterStutter . f) xs
    where
     join xss | null xss
@@ -958,11 +950,10 @@ newtype Mini a = Mini { unMini :: [a] }
 deriving instance IsString (Mini Char)
 
 instance Applicative Mini where
-  pure  = return
-  (<*>) = ap
+  pure x =  Mini [x]
+  (<*>)  = ap
 
 instance Monad Mini where
-  return x = Mini [x]
   Mini xs >>= f = Mini $ join $ map (unMini . f) xs 
    where
     join xss | isSingle xss || all isSingle xss = concat xss
@@ -1011,11 +1002,10 @@ newtype Odd a = Odd { unOdd :: [a] }
 deriving instance IsString (Odd Char)
 
 instance Applicative Odd where
-  pure  = return
-  (<*>) = ap
+  pure x = Odd [x]
+  (<*>)  = ap
 
 instance Monad Odd where
-  return x = Odd [x]
   Odd xs >>= f = Odd $ join $ map (unOdd . f) xs 
    where
     join xss | isSingle xss || all isSingle xss
@@ -1071,11 +1061,10 @@ newtype AtLeast (n :: Nat) a = AtLeast { unAtLeast :: [a] }
 deriving instance (KnownNat n) => IsString (AtLeast n Char)
 
 instance (KnownNat n) => Applicative (AtLeast n) where
-  pure  = return
-  (<*>) = ap
+  pure x = AtLeast [x]
+  (<*>)  = ap
 
 instance (KnownNat n) => Monad (AtLeast n) where
-  return x = AtLeast [x]
   AtLeast xs >>= f = AtLeast $ join $ map (unAtLeast . f) xs 
    where
     join xss | isSingle xss     = concat xss
@@ -1148,11 +1137,10 @@ newtype NumericalMonoidMonad (ns :: [Nat]) a = NumericalMonoidMonad { unNumerica
 deriving instance IsString (NumericalMonoidMonad ns Char)
 
 instance (NumericalMonoidGenerators ns) => Applicative (NumericalMonoidMonad ns) where
-  pure  = return
-  (<*>) = ap
+  pure x = NumericalMonoidMonad [x]
+  (<*>)  = ap
 
 instance (NumericalMonoidGenerators ns) => Monad (NumericalMonoidMonad ns) where
-  return x = NumericalMonoidMonad [x]
   NumericalMonoidMonad xs >>= f = NumericalMonoidMonad $ join $ map (unNumericalMonoidMonad . f) xs 
    where
     join xss | isSingle xss || all isSingle xss                          = concat xss
@@ -1204,11 +1192,10 @@ newtype AtMost (n :: Nat) a = AtMost { unAtMost :: [a] }
 deriving instance (KnownNat n) => IsString (AtMost n Char)
 
 instance (KnownNat n) => Applicative (AtMost n) where
-  pure  = return
-  (<*>) = ap
+  pure x = AtMost [x]
+  (<*>)  = ap
 
 instance (KnownNat n) => Monad (AtMost n) where
-  return x = AtMost [x]
   AtMost xs >>= f = AtMost $ join $ map (unAtMost . f) xs 
    where
     join xss | isSingle xss || all isSingle xss                                = concat xss
@@ -1298,11 +1285,10 @@ newtype ContinuumOfMonads (s :: Symbol) a = ContinuumOfMonads { unContinuumOfMon
 deriving instance IsString (ContinuumOfMonads s Char)
 
 instance (SetOfNats s) => Applicative (ContinuumOfMonads s) where
-  pure  = return
-  (<*>) = ap
+  pure x = ContinuumOfMonads [x]
+  (<*>)  = ap
 
 instance (SetOfNats s) => Monad (ContinuumOfMonads s) where
-  return x = ContinuumOfMonads [x]
   ContinuumOfMonads xs >>= f = ContinuumOfMonads $ join $ map (unContinuumOfMonads . f) xs 
    where
     join xss | isSingle xss || all isSingle xss               = concat xss
@@ -1352,11 +1338,10 @@ newtype ShortStutterKeeper (n :: Nat) (p :: Nat) a =
 deriving instance (KnownNat n, KnownNat p) => IsString (ShortStutterKeeper n p Char)
 
 instance (KnownNat n, KnownNat p) => Applicative (ShortStutterKeeper n p) where
-  pure  = return
-  (<*>) = ap
+  pure x = ShortStutterKeeper [x]
+  (<*>)  = ap
 
 instance (KnownNat n, KnownNat p) => Monad (ShortStutterKeeper n p) where
-  return x = ShortStutterKeeper [x]
   ShortStutterKeeper xs >>= f = ShortStutterKeeper $ join $ map (unShortStutterKeeper . f) xs
    where
     join :: forall x. [[x]] -> [x]

@@ -1,5 +1,9 @@
 # exotic-list-monad changelog
 
+## v1.1.1
+
+- Refactor to avoid the noncanonical-monad-instances warning
+
 ## v1.1.0
 
 - Add the AtMost monad
