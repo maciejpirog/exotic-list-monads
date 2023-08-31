@@ -170,6 +170,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NonEmpty
 import Prelude hiding ((<>))
 import Control.Monad (ap, join)
+import Data.Kind (Type)
 import GHC.Exts (IsList(..), IsString(..), Constraint)
 import GHC.TypeLits
 import Data.Proxy
@@ -284,7 +285,7 @@ class Magma a where
 -- @
 -- instance FreeRBM 'NonEmpty' 'Data.Semigroup.Semigroup'
 -- @
-class (NonEmptyMonad m) => FreeRBM m (c :: * -> Constraint) | m -> c where
+class (NonEmptyMonad m) => FreeRBM m (c :: Type -> Constraint) | m -> c where
   foldRBM :: (Magma a, c a) => (x -> a) -> m x -> a
   foldRBM f (unwrap -> toList -> xs) = foldr1 (<>) (map f xs)
 

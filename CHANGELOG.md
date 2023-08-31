@@ -2,7 +2,7 @@
 
 ## v1.1.1
 
-- Refactor to avoid the noncanonical-monad-instances warning
+- Refactor to avoid the noncanonical-monad-instances and star-is-type warnings
 
 ## v1.1.0
 

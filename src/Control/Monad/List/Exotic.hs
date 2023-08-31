@@ -174,6 +174,7 @@ module Control.Monad.List.Exotic
 
 import Prelude hiding ((<>))
 import Control.Monad (ap, join)
+import Data.Kind (Type)
 import GHC.Exts (IsList(..), IsString(..), Constraint)
 import GHC.TypeLits
 import Data.Proxy
@@ -320,7 +321,7 @@ instance PointedMagma [a] where
 -- @
 -- instance FreeRBPM [] 'Data.Monoid.Monoid'
 -- @
-class (ListMonad m) => FreeRBPM m (c :: * -> Constraint) | m -> c where
+class (ListMonad m) => FreeRBPM m (c :: Type -> Constraint) | m -> c where
   foldRBPM :: (PointedMagma a, c a) => (x -> a) -> m x -> a
   foldRBPM _ (unwrap -> []) = eps
   foldRBPM f (unwrap -> xs) = foldr1 (<>) (map f xs)
