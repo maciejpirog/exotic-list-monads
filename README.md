@@ -4,9 +4,9 @@
 
 A Haskell library with non-standard monads on lists and non-empty lists
 
-- Monads on lists: [Control.Monad.List.Exotic](https://hackage.haskell.org/package/exotic-list-monads-1.0.1/docs/Control-Monad-List-Exotic.html)
+- Monads on lists: [Control.Monad.List.Exotic](https://hackage.haskell.org/package/exotic-list-monads-1.1.0/docs/Control-Monad-List-Exotic.html)
 
-- Monads on non-empty lists: [Control.Monad.List.NonEmpty.Exotic](https://hackage.haskell.org/package/exotic-list-monads-1.0.1/docs/Control-Monad-List-NonEmpty-Exotic.html)
+- Monads on non-empty lists: [Control.Monad.List.NonEmpty.Exotic](https://hackage.haskell.org/package/exotic-list-monads-1.1.0/docs/Control-Monad-List-NonEmpty-Exotic.html)
 
 ## Description
 
