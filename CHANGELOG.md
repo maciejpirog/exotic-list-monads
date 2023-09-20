@@ -4,6 +4,10 @@
 
 - Refactor to avoid the noncanonical-monad-instances and star-is-type warnings
 
+- Add Eq and Show instances to DualListMonad
+
+- Fixes in documentation
+
 ## v1.1.0
 
 - Add the AtMost monad

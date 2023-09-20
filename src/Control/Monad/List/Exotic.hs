@@ -213,21 +213,17 @@ liftListFun f = wrap . f . unwrap
 -- | Every list monad has a dual, in which join is defined as
 --
 -- @
--- join . reverse . fmap reverse
+-- reverse . join . reverse . fmap reverse
 -- @
 --
--- (where join is the join of the original list monad), while return is
+-- (where join is the join of the original list monad).
 --
--- @
--- reverse . return
--- @
---
--- (where return is the return of the original list monad).
+-- return is the same as in the original monad.
 newtype DualListMonad m a = DualListMonad { unDualListMonad :: m a }
- deriving (Functor)
+ deriving (Functor, Show, Eq)
 
 instance (ListMonad m) => Applicative (DualListMonad m) where
-  pure  = DualListMonad . liftListFun reverse . pure
+  pure  = DualListMonad . pure
   (<*>) = ap
 
 instance (ListMonad m) => Monad (DualListMonad m) where

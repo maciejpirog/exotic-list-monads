@@ -875,16 +875,12 @@ liftNEFun f = wrap . f . unwrap
 -- as
 --
 -- @
--- join . reverse . fmap reverse
+-- reverse . join . reverse . fmap reverse
 -- @
 --
--- (where join is the join of the original list monad), while return is
+-- (where join is the join of the original list monad).
 --
--- @
--- reverse . return
--- @
---
--- (where return is the return of the original list monad).
+-- return is the same as in the original monad.
 newtype DualNonEmptyMonad m a =
   DualNonEmptyMonad { unDualNonEmptyMonad :: m a }
  deriving (Functor, Show, Eq)

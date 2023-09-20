@@ -23,6 +23,7 @@ import Control.Monad (join)
 import Data.Proxy
 import GHC.Exts (IsList(..))
 
+deriving instance (Arbitrary (m a)) => Arbitrary (DualListMonad m a)
 deriving instance (Arbitrary a) => Arbitrary (GlobalFailure a)
 deriving instance (Arbitrary a) => Arbitrary (MazeWalk a)
 deriving instance (Arbitrary a) => Arbitrary (DiscreteHybrid a)
@@ -98,7 +99,8 @@ spec = do
     it "knows that last of non-empty is non-empty" $
       safeLast "Roy" `shouldBe` "y"
 
-  testMonad  "GlobalFailure"      (Proxy :: Proxy GlobalFailure)
+  testMonad  "GlobalFailure"  (Proxy :: Proxy GlobalFailure)
+  testMonad  "DualListMonad GlobalFailure" (Proxy :: Proxy (DualListMonad GlobalFailure))
   describe  "GlobalFailure is ZeroSemigroup" $ do
     it                                             "x <> eps       ==  eps"
       $ property $ \(x :: GlobalFailure Int)     -> x <> eps       ==  eps
@@ -106,7 +108,9 @@ spec = do
       $ property $ \(x :: GlobalFailure Int)     -> eps <> x       ==  eps
     it                                             "(x <> y) <> z  ==  x <> (y <> z)"
       $ property $ \(x :: GlobalFailure Int) y z -> (x <> y) <> z  ==  x <> (y <> z)
-  testMonad  "MazeWalk"           (Proxy :: Proxy MazeWalk)
+      
+  testMonad  "MazeWalk" (Proxy :: Proxy MazeWalk)
+  testMonad  "DualListMonad MazeWalk" (Proxy :: Proxy (DualListMonad MazeWalk))
   describe  "MazeWalk is PalindromeAlgebra" $ do
     it                                        "x <> eps       ==  eps"
       $ property $ \(x :: MazeWalk Int)     -> x <> eps       ==  eps
@@ -114,7 +118,9 @@ spec = do
       $ property $ \(x :: MazeWalk Int)     -> eps <> x       ==  eps
     it                                        "(x <> y) <> z  ==  x <> (y <> (x <> z))"
       $ property $ \(x :: MazeWalk Int) y z -> (x <> y) <> z  ==  x <> (y <> (x <> z))
-  testMonad  "DiscreteHybrid"     (Proxy :: Proxy DiscreteHybrid)
+      
+  testMonad  "DiscreteHybrid" (Proxy :: Proxy DiscreteHybrid)
+  testMonad  "DualListMonad DiscreteHybrid" (Proxy :: Proxy (DualListMonad DiscreteHybrid))
   describe  "DiscreteHybrid is LeaningAlgebra" $ do
     it                                              "x <> eps       ==  eps"
       $ property $ \(x :: DiscreteHybrid Int)     -> x <> eps       ==  eps
@@ -122,7 +128,9 @@ spec = do
       $ property $ \(x :: DiscreteHybrid Int)     -> eps <> x       ==  x
     it                                              "(x <> y) <> z  ==  y <> z"
       $ property $ \(x :: DiscreteHybrid Int) y z -> (x <> y) <> z  ==  y <> z
-  testMonad  "ListUnfold"         (Proxy :: Proxy ListUnfold)
+  
+  testMonad  "ListUnfold" (Proxy :: Proxy ListUnfold)
+  testMonad  "DualListMonad ListUnfold" (Proxy :: Proxy (DualListMonad ListUnfold))
   describe  "ListUnfold is SkewedAlgebra" $ do
     it                                          "x <> eps       ==  eps"
       $ property $ \(x :: ListUnfold Int)     -> x <> eps       ==  eps
@@ -131,9 +139,14 @@ spec = do
     it                                          "(x <> y) <> z  ==  eps"
       $ property $ \(x :: ListUnfold Int) y z -> (x <> y) <> z  ==  eps
       
-  testMonad  "Stutter 1"          (Proxy :: Proxy (Stutter 0))
-  testMonad  "Stutter 2"          (Proxy :: Proxy (Stutter 1))
+  testMonad  "Stutter 1"          (Proxy :: Proxy (Stutter 1))
+  testMonad  "Stutter 2"          (Proxy :: Proxy (Stutter 2))
   testMonad  "Stutter 5"          (Proxy :: Proxy (Stutter 5))
+
+  testMonad  "DualListMonad (Stutter 0)" (Proxy :: Proxy (DualListMonad (Stutter 0)))
+  testMonad  "DualListMonad (Stutter 1)" (Proxy :: Proxy (DualListMonad (Stutter 1)))
+  testMonad  "DualListMonad (Stutter 2)" (Proxy :: Proxy (DualListMonad (Stutter 2)))
+  testMonad  "DualListMonad (Stutter 5)" (Proxy :: Proxy (DualListMonad (Stutter 5)))
 
   testMonad  "StutterKeeper 0"    (Proxy :: Proxy (StutterKeeper 0))
   testMonad  "StutterKeeper 1"    (Proxy :: Proxy (StutterKeeper 1))
@@ -142,6 +155,11 @@ spec = do
   testMonad  "StutterKeeper 4"    (Proxy :: Proxy (StutterKeeper 4))
   testMonad  "StutterKeeper 5"    (Proxy :: Proxy (StutterKeeper 5))
   testMonad  "StutterKeeper 10"   (Proxy :: Proxy (StutterKeeper 10))
+
+  testMonad  "DualListMonad (StutterKeeper 0)" (Proxy :: Proxy (DualListMonad (StutterKeeper 0)))
+  testMonad  "DualListMonad (StutterKeeper 1)" (Proxy :: Proxy (DualListMonad (StutterKeeper 1)))
+  testMonad  "DualListMonad (StutterKeeper 2)" (Proxy :: Proxy (DualListMonad (StutterKeeper 2)))
+  testMonad  "DualListMonad (StutterKeeper 5)" (Proxy :: Proxy (DualListMonad (StutterKeeper 5)))
   
   testMonad  "StutterStutter 0 0" (Proxy :: Proxy (StutterStutter 0 0))
   testMonad  "StutterStutter 0 1" (Proxy :: Proxy (StutterStutter 0 1))
@@ -192,9 +210,16 @@ spec = do
 
   testMonad  "ShortStutterKeeper 0 0" (Proxy :: Proxy (ShortStutterKeeper 0 0))
   testMonad  "ShortStutterKeeper 0 1" (Proxy :: Proxy (ShortStutterKeeper 0 1))
-  testMonad  "ShortStutterKeeper 0 1" (Proxy :: Proxy (ShortStutterKeeper 1 0))
+  testMonad  "ShortStutterKeeper 1 0" (Proxy :: Proxy (ShortStutterKeeper 1 0))
   testMonad  "ShortStutterKeeper 1 1" (Proxy :: Proxy (ShortStutterKeeper 1 1))
   testMonad  "ShortStutterKeeper 5 3" (Proxy :: Proxy (ShortStutterKeeper 5 3))
   testMonad  "ShortStutterKeeper 3 5" (Proxy :: Proxy (ShortStutterKeeper 3 5))
+
+  testMonad  "DualListMonad (ShortStutterKeeper 0 0)" (Proxy :: Proxy (DualListMonad (ShortStutterKeeper 0 0)))
+  testMonad  "DualListMonad (ShortStutterKeeper 0 1)" (Proxy :: Proxy (DualListMonad (ShortStutterKeeper 0 1)))
+  testMonad  "DualListMonad (ShortStutterKeeper 1 0)" (Proxy :: Proxy (DualListMonad (ShortStutterKeeper 1 0)))
+  testMonad  "DualListMonad (ShortStutterKeeper 1 1)" (Proxy :: Proxy (DualListMonad (ShortStutterKeeper 1 1)))
+  testMonad  "DualListMonad (ShortStutterKeeper 5 3)" (Proxy :: Proxy (DualListMonad (ShortStutterKeeper 5 3)))
+  testMonad  "DualListMonad (ShortStutterKeeper 3 5)" (Proxy :: Proxy (DualListMonad (ShortStutterKeeper 3 5)))
 
 
