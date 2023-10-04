@@ -274,7 +274,7 @@ instance PointedMagma [a] where
 -- | A class for __free right-braketed__ (subclasses of)
 -- __pointed magmas__.
 --
--- Most of the monads defined in this module arise from subclasses of
+-- All monads defined in this section arise from subclasses of
 -- 'PointedMagma', in which we do not assume any additional methods,
 -- but require the instances to satisfy additional equations. This
 -- means that the monad is not only an instance of such a class that
@@ -341,8 +341,8 @@ class (PointedMagma a) => ZeroSemigroup a
 
 -- | The Global Failure monad arises from free zero semigroups. It
 -- implements a kind of nondeterminism similar to the usual List
--- monad, but failing (= producing an empty list) in one branch makes
--- the entire computation fail.  Its join is defined as:
+-- monad, but failing (= resulting in the empty list) in one branch
+-- makes the entire computation fail.  Its join is defined as:
 --
 -- @
 -- join xss | any null xss = []
@@ -666,7 +666,7 @@ replicateLast n xs = xs ++ replicate n (last xs)
 --
 -- The 'Stutter' monad is quite similar to 'ListUnfold'. The
 -- difference is that when the latter fails (that is, its join results
--- in an empty list), the former stutters on the last singleton.
+-- in the empty list), the former stutters on the last singleton.
 --
 -- Examples:
 --
@@ -727,7 +727,7 @@ class (KnownNat n, PointedMagma a) => StutterKeeperAlgebra n a
 
 -- | The stutter-keeper monad arises from free stutter-keeper
 -- algebras. Its join stutters (as in the 'Stutter' monad) if the
--- first non-singleton list in empty. Otherwise, it keeps the
+-- first non-singleton list is empty. Otherwise, it keeps the
 -- singleton prefix, and keeps the first non-singleton list. The join
 -- can thus be defined as follows (omitting the conversion of the
 -- type-level 'Nat' @n@ to a run-time value):
@@ -911,14 +911,14 @@ instance (KnownNat n, KnownNat m)
 --
 -- Below, we first show a couple of concrete examples of monads
 -- arising from particular numerical monoids, and then the general
--- version via a set of generators.
+-- version via a set of generators, @'NumericalMonoidMonad'@.
 
 --------------------
 -- The Mini monad --
 --------------------
 
 -- | The Mini monad is, in a sense, a minimal list monad, meaning that
--- its join fails (= results in an empty list) for all values except
+-- its join fails (= results in the empty list) for all values except
 -- the ones that appear in the unit laws (i.e., a singleton or a list
 -- of singletons):
 --
@@ -970,7 +970,7 @@ instance ListMonad Mini
 -- | The join of the Odd monad is a concat of the inner lists provided
 -- there is an odd number of them, and that all of them are of odd
 -- length themselves. Otherwise (modulo cases needed for the unit
--- laws), it returns an empty list.
+-- laws), the result is the empty list.
 --
 -- @
 -- join xss | isSingle xss || all isSingle xss  = concat xss
