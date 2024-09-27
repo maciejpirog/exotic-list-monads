@@ -18,7 +18,7 @@ Most of the monads defined in this module have been introduced in the following 
 
 * [Degrading Lists](https://raw.githubusercontent.com/maciejpirog/exotic-list-monads/master/degrading-lists.pdf) by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (PPDP 2020),
 
-* [Counting Monads on Lists](https://cla.tcs.uj.edu.pl/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf) by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (CLA 2023),
+* [Counting Monads on Lists](http://cla.tcs.uj.edu.pl/history/2023/pdfs/McDermott-Pirog-Uustalu-Abstract.pdf) by Dylan McDermott, Maciej Piróg, Tarmo Uustalu (CLA 2023),
 
 * [Hybrid Programs](http://alfa.di.uminho.pt/~nevrenato/pdfs/thesis.pdf) by Renato Neves (PhD Thesis, 2018).
 
