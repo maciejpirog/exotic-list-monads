@@ -45,6 +45,7 @@ deriving instance (Arbitrary a) => Arbitrary (StutterNE 5 a)
 deriving instance (Arbitrary a) => Arbitrary (HeadTails a)
 deriving instance (Arbitrary a) => Arbitrary (HeadsTail a)
 deriving instance (Arbitrary a) => Arbitrary (AlphaOmega a)
+deriving instance (Arbitrary a) => Arbitrary (AlphaNOmegaK n k a)
 deriving instance (Arbitrary (m a)) => Arbitrary (ShortFront m 0 a)
 deriving instance (Arbitrary (m a)) => Arbitrary (ShortFront m 1 a)
 deriving instance (Arbitrary (m a)) => Arbitrary (ShortFront m 2 a)
@@ -53,6 +54,9 @@ deriving instance (Arbitrary (m a)) => Arbitrary (ShortRear m 0 a)
 deriving instance (Arbitrary (m a)) => Arbitrary (ShortRear m 1 a)
 deriving instance (Arbitrary (m a)) => Arbitrary (ShortRear m 2 a)
 deriving instance (Arbitrary (m a)) => Arbitrary (ShortRear m 5 a)
+
+assocTests :: Int
+assocTests = 250
 
 testMonad :: forall m. (Monad m, Eq (m Int), Arbitrary (m Int),
                         Arbitrary (m (m (m Int))),
@@ -64,7 +68,7 @@ testMonad name _ =
       \xs -> join (fmap return xs) == (xs :: m Int)
     it "right unit:" $ property $
       \xs -> join (return xs)      == (xs :: m Int)
-    modifyMaxSuccess (const 100) $ it "associativity:" $ property $
+    modifyMaxSuccess (const assocTests) $ it "associativity:" $ property $
       \xsss -> join (join xsss)    == (join (fmap join xsss) :: m Int)
 
 spec :: Spec
@@ -138,6 +142,20 @@ spec = do
 
   testMonad "AlphaOmega" (Proxy :: Proxy AlphaOmega)
 
+  testMonad "AlphaNOmegaK 1 1" (Proxy :: Proxy (AlphaNOmegaK 1 1))
+  testMonad "AlphaNOmegaK 2 0" (Proxy :: Proxy (AlphaNOmegaK 2 0))
+  testMonad "AlphaNOmegaK 0 2" (Proxy :: Proxy (AlphaNOmegaK 0 2))
+  testMonad "AlphaNOmegaK 2 1" (Proxy :: Proxy (AlphaNOmegaK 2 1))
+  testMonad "AlphaNOmegaK 1 2" (Proxy :: Proxy (AlphaNOmegaK 1 2))
+  testMonad "AlphaNOmegaK 2 2" (Proxy :: Proxy (AlphaNOmegaK 2 2))
+  testMonad "AlphaNOmegaK 3 1" (Proxy :: Proxy (AlphaNOmegaK 3 1))
+  testMonad "AlphaNOmegaK 1 3" (Proxy :: Proxy (AlphaNOmegaK 1 3))
+  testMonad "AlphaNOmegaK 3 2" (Proxy :: Proxy (AlphaNOmegaK 3 2))
+  testMonad "AlphaNOmegaK 2 3" (Proxy :: Proxy (AlphaNOmegaK 2 3))
+  testMonad "AlphaNOmegaK 3 3" (Proxy :: Proxy (AlphaNOmegaK 3 3))
+  testMonad "AlphaNOmegaK 6 8" (Proxy :: Proxy (AlphaNOmegaK 6 8))
+  testMonad "AlphaNOmegaK 9 3" (Proxy :: Proxy (AlphaNOmegaK 9 3))
+
   testMonad "ShortFront NonEmpty 0" (Proxy :: Proxy (ShortFront NonEmpty 0))
   testMonad "ShortFront NonEmpty 1" (Proxy :: Proxy (ShortFront NonEmpty 1))
   testMonad "ShortFront NonEmpty 2" (Proxy :: Proxy (ShortFront NonEmpty 2))
@@ -183,6 +201,27 @@ spec = do
   testMonad "ShortFront AlphaOmega 2" (Proxy :: Proxy (ShortFront AlphaOmega 2))
   testMonad "ShortFront AlphaOmega 5" (Proxy :: Proxy (ShortFront AlphaOmega 5))
 
+  testMonad "ShortFront (AlphaNOmegaK 1 1) 0" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 1 1) 0))
+  testMonad "ShortFront (AlphaNOmegaK 1 1) 1" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 1 1) 1))
+  testMonad "ShortFront (AlphaNOmegaK 1 1) 2" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 1 1) 2))
+  testMonad "ShortFront (AlphaNOmegaK 1 1) 5" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 1 1) 5))
+  testMonad "ShortFront (AlphaNOmegaK 2 0) 0" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 0) 0))
+  testMonad "ShortFront (AlphaNOmegaK 2 0) 1" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 0) 1))
+  testMonad "ShortFront (AlphaNOmegaK 2 0) 2" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 0) 2))
+  testMonad "ShortFront (AlphaNOmegaK 2 0) 5" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 0) 5))
+  testMonad "ShortFront (AlphaNOmegaK 0 2) 0" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 0 2) 0))
+  testMonad "ShortFront (AlphaNOmegaK 0 2) 0" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 0 2) 0))
+  testMonad "ShortFront (AlphaNOmegaK 0 2) 1" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 0 2) 1))
+  testMonad "ShortFront (AlphaNOmegaK 0 2) 2" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 0 2) 2))
+  testMonad "ShortFront (AlphaNOmegaK 2 3) 5" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 3) 5))
+  testMonad "ShortFront (AlphaNOmegaK 2 3) 1" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 3) 1))
+  testMonad "ShortFront (AlphaNOmegaK 2 3) 2" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 3) 2))
+  testMonad "ShortFront (AlphaNOmegaK 2 3) 5" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 2 3) 5))
+  testMonad "ShortFront (AlphaNOmegaK 12 3) 5" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 12 3) 5))
+  testMonad "ShortFront (AlphaNOmegaK 12 3) 1" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 12 3) 1))
+  testMonad "ShortFront (AlphaNOmegaK 12 3) 2" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 12 3) 2))
+  testMonad "ShortFront (AlphaNOmegaK 12 3) 5" (Proxy :: Proxy (ShortFront (AlphaNOmegaK 12 3) 5))
+
   testMonad "ShortFront (DualNonEmptyMonad DiscreteHybridNE) 0" (Proxy :: Proxy (ShortFront (DualNonEmptyMonad DiscreteHybridNE) 0))
   testMonad "ShortFront (DualNonEmptyMonad DiscreteHybridNE) 1" (Proxy :: Proxy (ShortFront (DualNonEmptyMonad DiscreteHybridNE) 1))
   testMonad "ShortFront (DualNonEmptyMonad DiscreteHybridNE) 2" (Proxy :: Proxy (ShortFront (DualNonEmptyMonad DiscreteHybridNE) 2))
@@ -202,6 +241,27 @@ spec = do
   testMonad "ShortRear AlphaOmega 1" (Proxy :: Proxy (ShortRear AlphaOmega 1))
   testMonad "ShortRear AlphaOmega 2" (Proxy :: Proxy (ShortRear AlphaOmega 2))
   testMonad "ShortRear AlphaOmega 5" (Proxy :: Proxy (ShortRear AlphaOmega 5))
+
+  testMonad "ShortRear (AlphaNOmegaK 1 1) 0" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 1 1) 0))
+  testMonad "ShortRear (AlphaNOmegaK 1 1) 1" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 1 1) 1))
+  testMonad "ShortRear (AlphaNOmegaK 1 1) 2" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 1 1) 2))
+  testMonad "ShortRear (AlphaNOmegaK 1 1) 5" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 1 1) 5))
+  testMonad "ShortRear (AlphaNOmegaK 2 0) 0" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 0) 0))
+  testMonad "ShortRear (AlphaNOmegaK 2 0) 1" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 0) 1))
+  testMonad "ShortRear (AlphaNOmegaK 2 0) 2" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 0) 2))
+  testMonad "ShortRear (AlphaNOmegaK 2 0) 5" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 0) 5))
+  testMonad "ShortRear (AlphaNOmegaK 0 2) 0" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 0 2) 0))
+  testMonad "ShortRear (AlphaNOmegaK 0 2) 0" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 0 2) 0))
+  testMonad "ShortRear (AlphaNOmegaK 0 2) 1" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 0 2) 1))
+  testMonad "ShortRear (AlphaNOmegaK 0 2) 2" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 0 2) 2))
+  testMonad "ShortRear (AlphaNOmegaK 2 3) 5" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 3) 5))
+  testMonad "ShortRear (AlphaNOmegaK 2 3) 1" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 3) 1))
+  testMonad "ShortRear (AlphaNOmegaK 2 3) 2" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 3) 2))
+  testMonad "ShortRear (AlphaNOmegaK 2 3) 5" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 2 3) 5))
+  testMonad "ShortRear (AlphaNOmegaK 12 3) 5" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 12 3) 5))
+  testMonad "ShortRear (AlphaNOmegaK 12 3) 1" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 12 3) 1))
+  testMonad "ShortRear (AlphaNOmegaK 12 3) 2" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 12 3) 2))
+  testMonad "ShortRear (AlphaNOmegaK 12 3) 5" (Proxy :: Proxy (ShortRear (AlphaNOmegaK 12 3) 5))
 
   testMonad "ShortRear (DualNonEmptyMonad Keeper) 0" (Proxy :: Proxy (ShortRear (DualNonEmptyMonad Keeper) 0))
   testMonad "ShortRear (DualNonEmptyMonad Keeper) 1" (Proxy :: Proxy (ShortRear (DualNonEmptyMonad Keeper) 1))
