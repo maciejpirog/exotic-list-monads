@@ -169,7 +169,6 @@ module Control.Monad.List.Exotic
   -- ** The Short Stutter-Keeper monad (?)
 
   , ShortStutterKeeper(..)
-
   ) where
 
 import Prelude hiding ((<>))

@@ -13,7 +13,9 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedLists #-}
+
 
 -- {-# LANGUAGE OverloadedStrings #-}
 
@@ -144,6 +146,10 @@ module Control.Monad.List.NonEmpty.Exotic
 
   , AlphaOmega(..)
 
+  -- ** The ΑⁿΩᵏ monad (?)
+
+  , AlphaNOmegaK(..)
+
   -- * Constructions on non-empty monads
 
   -- ** The dual non-empty list monad
@@ -172,7 +178,8 @@ import Prelude hiding ((<>))
 import Control.Monad (ap, join)
 import Data.Kind (Type)
 import GHC.Exts (IsList(..), IsString(..), Constraint)
-import GHC.TypeLits
+-- import GHC.TypeLits
+import GHC.TypeNats
 import Data.Proxy
 import qualified Data.Semigroup (Semigroup)
 import Control.Monad.List.Exotic (ListMonad, palindromize)
@@ -863,6 +870,64 @@ instance IsList (AlphaOmega a) where
 instance IsString (AlphaOmega Char) where
   fromString = fromList
 
+-----------------------
+-- The Α^n-Ω^k monad --
+-----------------------
+
+-- | A generalisation of the ΑΩ monad in which we replicate the first element
+-- @n@ times and the last element @k@ times. It is a monad when @n + k >= 2@.
+--
+-- @
+-- join xss | isSingle xss || nonEmptyAll isSingle xss
+--          = nonEmptyConcat xss
+--          | otherwise
+--          = fromList $
+--              replicate n (NonEmpty.head $ NonEmpty.head xss) ++
+--              replicate k (NonEmpty.last $ NonEmpty.last xss)
+-- @
+--
+-- For example:
+--
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaOmega 2 3 Char)
+-- "JJooo"
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaOmega 0 6 Char)
+-- "oooooo"
+newtype AlphaNOmegaK (n :: Nat) (k :: Nat) a = AlphaNOmegaK { unAlphaNOmegaK :: NonEmpty a }
+ deriving (Functor, Show, Eq)
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => Applicative (AlphaNOmegaK n k) where
+  pure a = AlphaNOmegaK [a]                         -- OverloadedLists
+  (<*>)  = ap
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => Monad (AlphaNOmegaK n k) where
+  AlphaNOmegaK xs >>= f = AlphaNOmegaK $ join $ NonEmpty.map (unAlphaNOmegaK . f) xs
+   where
+    join xss | isSingle xss || nonEmptyAll isSingle xss
+             = nonEmptyConcat xss
+             | otherwise
+             = let n = fromIntegral $ natVal (Proxy :: Proxy n)
+                   k = fromIntegral $ natVal (Proxy :: Proxy k)
+               in fromList $
+                    replicate n (NonEmpty.head $ NonEmpty.head xss) ++
+                    replicate k (NonEmpty.last $ NonEmpty.last xss)
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => IsNonEmpty (AlphaNOmegaK n k a) where
+  type ItemNE (AlphaNOmegaK n k a) = a
+  fromNonEmpty = AlphaNOmegaK
+  toNonEmpty = unAlphaNOmegaK
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => NonEmptyMonad (AlphaNOmegaK n k)
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => IsList (AlphaNOmegaK n k a) where
+  type Item (AlphaNOmegaK n k a) = a
+  fromList = fromNonEmpty . fromList
+  toList = toList . toNonEmpty
+
+-- The following is needed for the examples in the docs:
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => IsString (AlphaNOmegaK n k Char) where
+  fromString = fromList
+
 -------------------------------
 -- Dual non-empty list monad --
 -------------------------------
@@ -960,6 +1025,8 @@ instance (KnownNat n) => HasShortFront (StutterNE n)
 -- | (?)
 instance HasShortFront AlphaOmega
 
+instance (KnownNat n, KnownNat k, 2 <= n + k) => HasShortFront (AlphaNOmegaK n k)
+
 instance (HasShortRear m) => HasShortFront (DualNonEmptyMonad m)
 
 -- | This is a transformer for a number of monads (instances of the
@@ -1044,6 +1111,8 @@ instance HasShortRear DiscreteHybridNE
 
 -- | (?)
 instance HasShortRear AlphaOmega
+
+instance (KnownNat n, KnownNat k, 2 <= n + k) => HasShortRear (AlphaNOmegaK n k)
 
 instance (HasShortFront m) => HasShortRear (DualNonEmptyMonad m)
 
