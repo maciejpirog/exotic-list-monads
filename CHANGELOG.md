@@ -1,5 +1,12 @@
 # exotic-list-monad changelog
 
+## v1.2.1
+
+- Add `UndecidableInstances` extension to `Control.Monad.List.NonEmpty.Exotic` to
+  deal with the `2 <= n + k` constraint in the `AlphaNOmegaK` monad on newer GHCs
+
+- Turn off the `x-partial` warning
+
 ## v1.2.0
 
 - Add the `AlphaNOmegaK` monad

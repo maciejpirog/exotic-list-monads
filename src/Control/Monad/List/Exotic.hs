@@ -7,7 +7,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+-- {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
@@ -26,7 +26,7 @@
 -- |
 -- Module      : Control.Monad.List.Exotic
 -- Description : Non-standard monads on the list functor
--- Copyright   : (c) Dylan McDermott, Maciej Piróg, Tarmo Uustalu, 2020
+-- Copyright   : (c) 2020-2025 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
 -- License     : MIT
 -- Maintainer  : maciej.adam.pirog@gmail.com
 -- Stability   : experimental
@@ -377,7 +377,7 @@ instance IsList (GlobalFailure a) where
 instance ListMonad GlobalFailure
 
 instance PointedMagma (GlobalFailure a) where
-  m <> t = join $ GlobalFailure $ [m, t]
+  m <> t = join $ GlobalFailure [m, t]
   eps    = GlobalFailure []
 
 instance ZeroSemigroup (GlobalFailure a)
@@ -473,7 +473,7 @@ instance IsList (MazeWalk a) where
 instance ListMonad MazeWalk
 
 instance PointedMagma (MazeWalk a) where
-  m <> t = join $ MazeWalk $ [m, t]
+  m <> t = join $ MazeWalk [m, t]
   eps    = MazeWalk []
 
 instance PalindromeAlgebra (MazeWalk a)
@@ -543,7 +543,7 @@ instance IsList (DiscreteHybrid a) where
 instance ListMonad DiscreteHybrid
 
 instance PointedMagma (DiscreteHybrid a) where
-  m <> t = join $ DiscreteHybrid $ [m, t]
+  m <> t = join $ DiscreteHybrid [m, t]
   eps    = DiscreteHybrid []
 
 instance LeaningAlgebra (DiscreteHybrid a)
@@ -614,7 +614,7 @@ instance IsList (ListUnfold a) where
 instance ListMonad ListUnfold
 
 instance PointedMagma (ListUnfold a) where
-  m <> t = join $ ListUnfold $ [m, t]
+  m <> t = join $ ListUnfold [m, t]
   eps    = ListUnfold []
 
 instance SkewedAlgebra (ListUnfold a)
@@ -703,7 +703,7 @@ instance (KnownNat n) => IsList (Stutter n a) where
 instance (KnownNat n) => ListMonad (Stutter n) 
 
 instance (KnownNat n) => PointedMagma (Stutter n a) where
-  m <> t = join $ Stutter $ [m, t]
+  m <> t = join $ Stutter [m, t]
   eps    = Stutter []
 
 instance (KnownNat n) => StutterAlgebra n (Stutter n a)
@@ -778,7 +778,7 @@ instance (KnownNat n) => IsList (StutterKeeper n a) where
 instance (KnownNat n) => ListMonad (StutterKeeper n) 
 
 instance (KnownNat n) => PointedMagma (StutterKeeper n a) where
-  m <> t = join $ StutterKeeper $ [m, t]
+  m <> t = join $ StutterKeeper [m, t]
   eps    = StutterKeeper []
 
 instance (KnownNat n) => StutterKeeperAlgebra n (StutterKeeper n a)
@@ -859,7 +859,7 @@ instance (KnownNat n, KnownNat m) => IsList (StutterStutter n m a) where
 instance (KnownNat n, KnownNat m) => ListMonad (StutterStutter n m) 
 
 instance (KnownNat n, KnownNat m) => PointedMagma (StutterStutter n m a) where
-  m <> t = join $ StutterStutter $ [m, t]
+  m <> t = join $ StutterStutter [m, t]
   eps    = StutterStutter []
 
 instance (KnownNat n, KnownNat m)
