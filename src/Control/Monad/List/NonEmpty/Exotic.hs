@@ -2,12 +2,10 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
@@ -15,14 +13,14 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedLists #-}
-
+{-# LANGUAGE UndecidableInstances #-} -- needed for the 2 < n + k constraint in AlphaNOmegaK
 
 -- {-# LANGUAGE OverloadedStrings #-}
 
 -- |
 -- Module      : Control.Monad.List.NonEmpty.Exotic
 -- Description : Non-standard monads on the non-empty list functor
--- Copyright   : (c) Dylan McDermott, Maciej Piróg, Tarmo Uustalu, 2020
+-- Copyright   : (c) 2020-2025 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
 -- License     : MIT
 -- Maintainer  : maciej.adam.pirog@gmail.com
 -- Stability   : experimental
@@ -327,7 +325,7 @@ newtype Keeper a = Keeper { unKeeper :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative Keeper where
-  pure a = Keeper $ [a]  -- OverloadedLists
+  pure a = Keeper [a]  -- OverloadedLists
   (<*>)  = ap
 
 instance Monad Keeper where
@@ -346,7 +344,7 @@ instance IsNonEmpty (Keeper a) where
 instance NonEmptyMonad Keeper
 
 instance Magma (Keeper a) where
-  m <> t = join $ Keeper $ [m, t]
+  m <> t = join $ Keeper [m, t]
 
 instance XY (Keeper a)
 
@@ -387,7 +385,7 @@ newtype DiscreteHybridNE a =
  deriving (Functor, Show, Eq)
 
 instance Applicative DiscreteHybridNE where
-  pure a = DiscreteHybridNE $ [a]  -- OverloadedLists
+  pure a = DiscreteHybridNE [a]  -- OverloadedLists
   (<*>)  = ap
 
 instance Monad DiscreteHybridNE where
@@ -404,7 +402,7 @@ instance IsNonEmpty (DiscreteHybridNE a) where
 instance NonEmptyMonad DiscreteHybridNE
 
 instance Magma (DiscreteHybridNE a) where
-  m <> t = join $ DiscreteHybridNE $ [m, t]
+  m <> t = join $ DiscreteHybridNE [m, t]
 
 instance YZ (DiscreteHybridNE a)
 
@@ -445,7 +443,7 @@ newtype OpDiscreteHybridNE a =
  deriving (Functor, Show, Eq)
 
 instance Applicative OpDiscreteHybridNE where
-  pure a = OpDiscreteHybridNE $ [a]  -- OverloadedLists
+  pure a = OpDiscreteHybridNE [a]  -- OverloadedLists
   (<*>)  = ap
 
 instance Monad OpDiscreteHybridNE where
@@ -462,7 +460,7 @@ instance IsNonEmpty (OpDiscreteHybridNE a) where
 instance NonEmptyMonad OpDiscreteHybridNE
 
 instance Magma (OpDiscreteHybridNE a) where
-  m <> t = join $ OpDiscreteHybridNE $ [m, t]
+  m <> t = join $ OpDiscreteHybridNE [m, t]
 
 instance XZ (OpDiscreteHybridNE a)
 
@@ -504,7 +502,7 @@ newtype MazeWalkNE a =
  deriving (Functor, Show, Eq)
 
 instance Applicative MazeWalkNE where
-  pure a = MazeWalkNE $ [a]  -- OverloadedLists
+  pure a = MazeWalkNE [a]  -- OverloadedLists
   (<*>)  = ap
 
 instance Monad MazeWalkNE where
@@ -523,7 +521,7 @@ instance IsNonEmpty (MazeWalkNE a) where
 instance NonEmptyMonad MazeWalkNE
 
 instance Magma (MazeWalkNE a) where
-  m <> t = join $ MazeWalkNE $ [m, t]
+  m <> t = join $ MazeWalkNE [m, t]
 
 instance PalindromeMagma (MazeWalkNE a)
 
@@ -563,7 +561,7 @@ newtype StutterNE (n :: Nat) a =
  deriving (Functor, Show, Eq)
 
 instance (KnownNat n) => Applicative (StutterNE n) where
-  pure a = StutterNE $ [a]  -- OverloadedLists
+  pure a = StutterNE [a]  -- OverloadedLists
   (<*>)  = ap
 
 instance (KnownNat n) => Monad (StutterNE n) where
@@ -589,7 +587,7 @@ instance (KnownNat n) => IsNonEmpty (StutterNE n a) where
 instance (KnownNat n) => NonEmptyMonad (StutterNE n)
 
 instance (KnownNat n) => Magma (StutterNE n a) where
-  m <> t = join $ StutterNE $ [m, t]
+  m <> t = join $ StutterNE [m, t]
 
 instance (KnownNat n) => StutterMagma n (StutterNE n a)
 
@@ -668,7 +666,7 @@ newtype HeadTails a = HeadTails { unHeadTails :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative HeadTails where
-  pure a = HeadTails $ [a,a]  -- OverloadedLists
+  pure a = HeadTails [a,a]  -- OverloadedLists
   (<*>)  = ap
 
 instance Monad HeadTails where
@@ -772,7 +770,7 @@ newtype HeadsTail a = HeadsTail { unHeadsTail :: NonEmpty a }
  deriving (Functor, Show, Eq)
 
 instance Applicative HeadsTail where
-  pure a = HeadsTail $ [a,a]  -- OverloadedLists
+  pure a = HeadsTail [a,a]  -- OverloadedLists
   (<*>)  = ap
 
 instance Monad HeadsTail where

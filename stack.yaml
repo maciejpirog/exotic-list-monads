@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-16.5
+resolver: ghc-9.8.4
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -42,11 +42,22 @@ packages:
 # extra-deps: []
 
 extra-deps:
- - Cabal-3.2.0.0@sha256:d0d7a1f405f25d0000f5ddef684838bc264842304fd4e7f80ca92b997b710874,27320
- - cabal-install-parsers-0.3.0.1@sha256:c7e4c9379018f44c202b474877e5bc4089a8996e376985224e64715655dc09e1,3760
- - generic-lens-lite-0.1@sha256:ff6b891859105808b39637601c7678a434ffa18bba3d368cddd29fc3ea0474bd,1635
- - binary-instances-1.0.0.1@sha256:e234be994da675479a3661f050d4a1d53565c9ed7786d9a68b7a29ba8b54b5a7,2659
-
+           - QuickCheck-2.16.0.0@sha256:f4210647167f873196b01050ac074a44821b6687e26f792ad3474b6388c5f8b7,9208
+           - hspec-2.11.12@sha256:d16b4a90470b415d56a1b561a1735566b2d8529bdbc5b26a965785768cd26ca1,1766
+           - hspec-core-2.11.12@sha256:9862660946d84cd40142ef48b42bcc6f6769cc44ca554f7eec6f3dc695b5097b,7762
+           - hspec-discover-2.11.12@sha256:cb6b6048b6f0fa539176f4b8012241e4c518c9803eb7ef58097c42a68b15b1c3,2171
+           - HUnit-1.6.2.0@sha256:1a79174e8af616117ad39464cac9de205ca923da6582825e97c10786fda933a4,1588
+           - ansi-terminal-1.1.3@sha256:4b26711a95ec724284cdf41aaebc624d9f8a51799424f90ab09d1276bb154e7f,2760
+           - call-stack-0.4.0@sha256:ac44d2c00931dc20b01750da8c92ec443eb63a7231e8550188cb2ac2385f7feb,1200
+           - haskell-lexer-1.2.1@sha256:393300e223f7b84c334d87780481bcede98392aa8bd82bc882d76b54b7d1c699,1279
+           - hspec-expectations-0.8.4@sha256:4237f094a7931202ff57ac6475542b0b314b50a7024550e2b6eb87cfb0d4ff93,1702
+           - quickcheck-io-0.2.0@sha256:7bf0b68fb90873825eb2e5e958c1b76126dcf984debb998e81673e6d837e0b2d,1133
+           - random-1.3.1@sha256:0b4f649c3e78713b2ccad1535251ee34b148237fb2229d7058c2b1d9ccc324b8,6004
+           - splitmix-0.1.3.1@sha256:d0002f3fb16a2cc5ba8afd47a6657726386edccfe8853d310e3479fe3b45201b,6552
+           - tf-random-0.5@sha256:14012837d0f0e18fdbbe3d56e67da8622ee5e20b180abce952dd50bd9f36b326,3983
+           - ansi-terminal-types-1.1.3@sha256:1d6061eceaf35a9ed269b81177dd4c8c60403a499526f7f68fdffa4ec7842e7f,1523
+           - colour-2.3.6@sha256:ebdcbf15023958838a527e381ab3c3b1e99ed12d1b25efeb7feaa4ad8c37664a,2378
+           - primitive-0.9.1.0@sha256:dfdd6572944c11e69208237dd32a2eb9d975b4f4e9064a7b8dc952cb0e256846,3119
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
