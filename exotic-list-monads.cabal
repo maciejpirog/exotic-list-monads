@@ -11,9 +11,9 @@ description:    The usual list monad is only one of infinitely many ways to turn
 category:       List, Monads
 homepage:       http://github.com/maciejpirog/exotic-list-monads
 bug-reports:    http://github.com/maciejpirog/exotic-list-monads/issues
-author:         Maciej Piróg <maciej.adam.pirog@gmial.com>
+author:         Maciej Piróg <maciej.adam.pirog@gmail.com>
 maintainer:     Maciej Piróg <maciej.adam.pirog@gmail.com>
-copyright:      (c) 2020-2025 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
+copyright:      (c) 2020-2026 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple

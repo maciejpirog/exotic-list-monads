@@ -1,5 +1,9 @@
 # exotic-list-monad changelog
 
+## v1.2.2
+
+- Fixes in documentation
+
 ## v1.2.1
 
 - Add `UndecidableInstances` extension to `Control.Monad.List.NonEmpty.Exotic` to
