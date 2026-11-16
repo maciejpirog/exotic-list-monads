@@ -13,14 +13,14 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedLists #-}
-{-# LANGUAGE UndecidableInstances #-} -- needed for the 2 < n + k constraint in AlphaNOmegaK
+{-# LANGUAGE UndecidableInstances #-} -- needed for the 2 <= n + k constraint in AlphaNOmegaK
 
 -- {-# LANGUAGE OverloadedStrings #-}
 
 -- |
 -- Module      : Control.Monad.List.NonEmpty.Exotic
 -- Description : Non-standard monads on the non-empty list functor
--- Copyright   : (c) 2020-2025 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
+-- Copyright   : (c) 2020-2026 Dylan McDermott, Maciej Piróg, Tarmo Uustalu
 -- License     : MIT
 -- Maintainer  : maciej.adam.pirog@gmail.com
 -- Stability   : experimental
@@ -213,7 +213,7 @@ class (Monad m) => NonEmptyMonad m where
 
 instance NonEmptyMonad NonEmpty
 
--- | Split a non empty list to reveal the last element.
+-- | Split a non-empty list to reveal the last element.
 splitSnoc :: NonEmpty a -> ([a], a)
 splitSnoc (x :| []) = ([], x)
 splitSnoc (x :| xs) = (x : init xs, last xs)
@@ -246,15 +246,15 @@ nonEmptyAny p (x :| xs) = p x || any p xs
 -- $magmas
 --
 -- This section contains monads that come about from free algebras of
--- theories with one binary operation, that is, subcalsses of 'Magma'
+-- theories with one binary operation, that is, subclasses of 'Magma'
 -- with no additional methods, but additional equations.
 
--- | A very simple algebraic theory with one binary operations and no
+-- | A very simple algebraic theory with one binary operation and no
 -- equations.
 class Magma a where
   (<>) :: a -> a -> a
 
--- | The name of the class stands for __free right-braketed__
+-- | The name of the class stands for __free right-bracketed__
 -- (subclass of) __magma__. (compare
 -- 'Control.Monad.List.Exotic.FreeRBPM' for more detailed
 -- explanation).
@@ -492,7 +492,7 @@ class (Magma a) => PalindromeMagma a
 -- as follows:
 --
 -- @
--- joinList xss = map 'Control.Monad.List.Exotic.palindromize' (init xss) ++ last xss
+-- joinList xss = concatMap 'Control.Monad.List.Exotic.palindromize' (init xss) ++ last xss
 -- @
 --
 -- See the possibly-empty version
@@ -611,7 +611,7 @@ instance (KnownNat n) => IsString (StutterNE n Char) where
 --
 -- In contrast to the possibly-empty-list case, there are known
 -- non-empty monads that arise from algebraic theories, but ones that
--- cannot be presented with one binary operations (as in monads that
+-- cannot be presented with one binary operation (as in monads that
 -- come about from subclasses of 'Magma').
 
 -- | The head-tail-tail algebra has two operations: unary 'hd'
@@ -646,7 +646,7 @@ class HeadTailTail a where
   hd  :: a -> a
   htt :: a -> a -> a -> a
 
--- | The Head-Tails monad arises from free head-tail-tail algebras. Its unit is a dubleton, that is:
+-- | The Head-Tails monad arises from free head-tail-tail algebras. Its unit is a doubleton, that is:
 --
 -- @
 -- return x = HeadTails (x :| [x])
@@ -746,7 +746,7 @@ class HeadHeadTail a where
   ht  :: a -> a -> a
   hht :: a -> a -> a -> a
   
--- | The Heads-Tail monad arises from free head-head-tail algebras. Its unit is a dubleton, that is:
+-- | The Heads-Tail monad arises from free head-head-tail algebras. Its unit is a doubleton, that is:
 --
 -- @
 -- return x = HeadsTail (x :| [x])
@@ -886,9 +886,9 @@ instance IsString (AlphaOmega Char) where
 --
 -- For example:
 --
--- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaOmega 2 3 Char)
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaNOmegaK 2 3 Char)
 -- "JJooo"
--- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaOmega 0 6 Char)
+-- >>> toList $ unwrap (join ["John", "Paul", "George", "Ringo"] :: AlphaNOmegaK 0 6 Char)
 -- "oooooo"
 newtype AlphaNOmegaK (n :: Nat) (k :: Nat) a = AlphaNOmegaK { unAlphaNOmegaK :: NonEmpty a }
  deriving (Functor, Show, Eq)
