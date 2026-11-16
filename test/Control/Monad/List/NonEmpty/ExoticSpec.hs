@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -18,15 +19,17 @@ import Test.Hspec
 import Test.QuickCheck
 import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
 import Data.List.NonEmpty (NonEmpty(..))
-import qualified Data.List.NonEmpty as NonEmpty
 import Control.Monad.List.NonEmpty.Exotic
 import Control.Monad.List.Exotic (MazeWalk(..))
 import Control.Monad (join, liftM2)
 import Data.Proxy
 -- import GHC.Exts (IsList(..))
 
-instance (Arbitrary a) => Arbitrary (NonEmpty.NonEmpty a) where
+-- QuickCheck >= 2.17 provides this instance itself
+#if !MIN_VERSION_QuickCheck(2,17,0)
+instance (Arbitrary a) => Arbitrary (NonEmpty a) where
   arbitrary = liftM2 (:|) (arbitrary :: Gen a) (arbitrary :: Gen [a])
+#endif
 
 deriving instance (Arbitrary a) => Arbitrary (MazeWalk a)
 
